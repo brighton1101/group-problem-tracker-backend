@@ -16,7 +16,8 @@ class Parser {
 	/**
 	 * Connect to url and get parsed document
 	 * @param  url Base url to connect to
-	 * @return     Jsoup Document
+	 * @return     Optional containing Jsoup document,
+	 *             or an empty optional
 	 */
 	static Optional<Document> getParsedHtml(String url) {
 		try {
@@ -36,8 +37,9 @@ class Parser {
 	 * Loads utf-8 encoded html file from resources directory. Note
 	 * that this likely won't be useful in a production environment,
 	 * but is very useful for testing.
-	 * @param  resourcesPath [description]
-	 * @return               [description]
+	 * @param  resourcesPath Path to file in resources directory
+	 * @return               Optional containing Jsoup document,
+	 *                       or an empty optional
 	 */
 	static Optional<Document> loadFromFile(String resourcesPath) {
 		try {
