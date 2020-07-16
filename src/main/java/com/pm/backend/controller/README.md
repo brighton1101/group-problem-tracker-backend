@@ -13,3 +13,4 @@ Any notes, design decisions/justifications, etc. regarding controllers should be
 - Note that currently, there is no functionality with this controller code. This is being done for a couple of reasons:
 1. Give others who are less familiar with Spring Boot services a chance to see how request mapping is done
 2. We have not finalized our design for this codebase yet, but we wanted to get a head start on setting up the infrastructure for the application.
+3. Also - note that pojos representing requests and responses will be stored in a versioned controller package.
