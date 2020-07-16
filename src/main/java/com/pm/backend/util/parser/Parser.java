@@ -11,7 +11,7 @@ import java.util.Optional;
  * using jsoup.
  * @see https://jsoup.org/apidocs/index.html
  */
-class Parser {
+public class Parser {
 
 	/**
 	 * Connect to url and get parsed document
@@ -19,7 +19,7 @@ class Parser {
 	 * @return     Optional containing Jsoup document,
 	 *             or an empty optional
 	 */
-	static Optional<Document> getParsedHtml(String url) {
+	public static Optional<Document> loadFromUri(String url) {
 		try {
 			return Optional.of(
 				Jsoup
@@ -41,7 +41,7 @@ class Parser {
 	 * @return               Optional containing Jsoup document,
 	 *                       or an empty optional
 	 */
-	static Optional<Document> loadFromFile(String resourcesPath) {
+	public static Optional<Document> loadFromFile(String resourcesPath) {
 		try {
 			File f = new File(
 				Parser.class.getClassLoader().getResource(resourcesPath).getFile()
@@ -61,13 +61,27 @@ class Parser {
 	 * @param  selector CSS selector (jQuery style) to look up html value for
 	 * @return          Optional value, with value of text if exists
 	 */
-	static Optional<String> getTextFromElement(Document doc, String selector) {
+	public static Optional<String> getTextFromElement(Document doc, String selector) {
 		Elements elms = doc.select(selector);
 		if (elms.isEmpty()) {
 			return Optional.empty();
 		}
 		return Optional.of(
 			elms.first().text()
+		);
+	}
+
+	/**
+	 * Given a selector, verify that it exists within doc
+	 * @param  doc      Doc to look for selector in
+	 * @param  selector selector
+	 * @return          true if found, false otherwise
+	 */
+	public static boolean verifySelectorExists(Document doc, String selector) {
+		return !(
+			Parser
+				.getTextFromElement(doc, selector)
+				.isEmpty()
 		);
 	}
 }
