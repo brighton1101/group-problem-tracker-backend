@@ -19,7 +19,7 @@ class ParserTest {
 	@Test
 	public void testGetTextFromElement() {
 		Document doc = Parser
-			.loadFromFile("helloworld.html")
+			.loadFromFile("helloworld")
 			.get();
 		Assertions.assertEquals(
 			"Load a Document from a File",
