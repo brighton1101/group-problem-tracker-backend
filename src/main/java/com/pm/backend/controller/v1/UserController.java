@@ -24,6 +24,17 @@ import static com.pm.backend.controller.v1.SchemaVersion.v;
 @RestController
 @RequestMapping("/v1/users")
 class UserController {
+	
+	@Autowired
+	private UserRepository userRepository;
+
+	@PostMapping("/addUser")
+	public String addUser(@NotNull @RequestBody UserModel user) {
+		user.setSchemaVersion(v);
+		userRepository.save(user);
+
+		return "Added user: " + user.getId();
+	}
 
     @Autowired
     private UserRepository userRepository;

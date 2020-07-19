@@ -13,10 +13,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Accessors(chain = true)
 @Document(collection = "solutions")
 public class SolutionModel {
+    
+    @ApiModelProperty(hidden = true)
+    private String id;
 
     @Id
     private String id;
     private UserModel user;
+
+    @DBRef(lazy=true)
     private GroupModel group;
     private int questionId;
     private String solutionCode;
