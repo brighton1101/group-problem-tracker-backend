@@ -3,10 +3,13 @@ package com.pm.backend.controller.v1;
 
 import com.pm.backend.model.v1.solution.SolutionModel;
 import com.pm.backend.repository.SolutionRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+
+import static com.pm.backend.controller.v1.SchemaVersion.v;
 
 @RestController
 @RequestMapping("/v1/solutions")
@@ -17,7 +20,8 @@ public class SolutionController {
     private SolutionRepository solutionRepository;
 
     @PostMapping("/addSolution")
-    public String addSolution(@RequestBody SolutionModel solution) {
+    public String addSolution(@NotNull @RequestBody SolutionModel solution) {
+        solution.setSchemaVersion(v);
         solutionRepository.save(solution);
 
         return "Added solution: " + solution.toString();
