@@ -1,6 +1,6 @@
 package com.pm.backend.controller.v1;
 
-import com.pm.backend.model.QuestionModel;
+import com.pm.backend.model.v1.question.QuestionModel;
 import com.pm.backend.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
