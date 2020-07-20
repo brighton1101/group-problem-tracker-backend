@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 
-public interface GroupRepository extends MongoRepository<GroupModel, String> {
+public interface GroupRepository extends MongoRepository<GroupModel, String>, CustomGroupRepository {
    // List<GroupModel> findByUser(GroupModel group);
 }

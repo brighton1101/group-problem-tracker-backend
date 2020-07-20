@@ -26,8 +26,8 @@ public class UserModel {
     //solutions embedded?
 
     //private List<groups> referenced
-    @DBRef(lazy=true)
-    private List<GroupModel> groups;
+    //@DBRef(lazy=true)
+    //private List<GroupModel> groups;
 
 
 }

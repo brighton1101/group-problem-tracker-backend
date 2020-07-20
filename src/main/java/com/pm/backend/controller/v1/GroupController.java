@@ -1,6 +1,7 @@
 package com.pm.backend.controller.v1;
 
 
+import com.pm.backend.controller.v1.request.UserJoinGroupRequest;
 import com.pm.backend.model.v1.group.GroupModel;
 import com.pm.backend.repository.GroupRepository;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,11 @@ public class GroupController {
     @GetMapping("/getGroup/{id}")
     public Optional<GroupModel> getGroup(@PathVariable String id) {
         return groupRepository.findById(id);
+    }
+
+    @PostMapping("addUser")
+    public String addUser(@NotNull @RequestBody UserJoinGroupRequest request) {
+        return groupRepository.findGroupAddUser(request.getGroupId(), request.getUserId());
     }
 
 }
