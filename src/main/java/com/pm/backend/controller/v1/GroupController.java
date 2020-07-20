@@ -54,4 +54,9 @@ public class GroupController {
         return ResponseEntity.ok(groupRepository.findGroupAddUser(request));
     }
 
+    @PostMapping("addUser")
+    public String addUser(@NotNull @RequestBody UserJoinGroupRequest request) {
+        return groupRepository.findGroupAddUser(request.getGroupId(), request.getUserId());
+    }
+
 }
