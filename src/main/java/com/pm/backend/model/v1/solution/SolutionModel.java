@@ -19,10 +19,8 @@ public class SolutionModel {
     
     //@ApiModelProperty(hidden = true)
     private String id;
-
-    private String userId;
-
-    private String groupId;
+    private UserModel user;
+    private GroupModel group;
     private int questionId;
     private String solutionCode;
     private SolutionLanguage solutionLanguage;

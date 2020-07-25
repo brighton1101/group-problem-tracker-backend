@@ -1,5 +1,6 @@
 package com.pm.backend.controller.v1;
 
+import com.pm.backend.controller.v1.request.AddUserRequest;
 import com.pm.backend.model.v1.group.GroupModel;
 import com.pm.backend.model.v1.user.UserModel;
 import com.pm.backend.repository.UserRepository;
@@ -31,10 +32,11 @@ class UserController {
 	//private UserGroupRepository userGroupRepository;
 
 	@PostMapping
-	public ResponseEntity addUser(@NotNull @RequestBody UserModel user) {
-		user.setSchemaVersion(v);
+	public ResponseEntity addUser(@NotNull @RequestBody AddUserRequest addUserRequest) {
+		UserModel user = new UserModel().setUserName(addUserRequest.getUserName())
+				.setUserPassword(addUserRequest.getUserPassword())
+				.setSchemaVersion(v);
 		userRepository.save(user);
-
 		return ResponseEntity.ok("Added user: " + user.getId());
 	}
 
