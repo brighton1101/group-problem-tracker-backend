@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "solutions")
 public class SolutionModel {
     
-    @ApiModelProperty(hidden = true)
+    //@ApiModelProperty(hidden = true)
     private String id;
 
     @Id

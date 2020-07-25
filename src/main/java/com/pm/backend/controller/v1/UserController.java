@@ -2,7 +2,6 @@ package com.pm.backend.controller.v1;
 
 import com.pm.backend.controller.v1.request.AddUserRequest;
 import com.pm.backend.model.v1.user.UserModel;
-import com.pm.backend.repository.UserGroupRepository;
 import com.pm.backend.repository.UserRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +30,12 @@ class UserController {
 	//@Autowired
 	//private UserGroupRepository userGroupRepository;
 
-	@PostMapping("/addUser")
-	public String addUser(@NotNull @RequestBody UserModel user) {
+	@PostMapping
+	public ResponseEntity addUser(@NotNull @RequestBody UserModel user) {
 		user.setSchemaVersion(v);
 		userRepository.save(user);
 
-		return "Added user: " + user.getId();
+		return ResponseEntity.ok("Added user: " + user.getId());
 	}
 
     @Autowired
