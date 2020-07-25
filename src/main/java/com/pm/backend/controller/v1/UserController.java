@@ -1,12 +1,12 @@
 package com.pm.backend.controller.v1;
 
 import com.pm.backend.model.v1.group.GroupModel;
-import com.pm.backend.model.v1.user.UserGroup;
 import com.pm.backend.model.v1.user.UserModel;
-import com.pm.backend.repository.UserGroupRepository;
 import com.pm.backend.repository.UserRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import static com.pm.backend.controller.v1.SchemaVersion.v;
 
@@ -30,50 +30,33 @@ class UserController {
 	//@Autowired
 	//private UserGroupRepository userGroupRepository;
 
-	@PostMapping("/addUser")
-	public String addUser(@NotNull @RequestBody UserModel user) {
+	@PostMapping
+	public ResponseEntity addUser(@NotNull @RequestBody UserModel user) {
 		user.setSchemaVersion(v);
 		userRepository.save(user);
 
-		return "Added user: " + user.getId();
+		return ResponseEntity.ok("Added user: " + user.getId());
 	}
 
-	@GetMapping("/getUser/{id}")
+	//TODO fix this to use a response object instead of returning the model
+	@GetMapping("/{id}")
 	public Optional<UserModel> getUser(@PathVariable String id) {
 		return userRepository.findById(id);
 	}
 
-	@DeleteMapping("/deleteUser/{id}")
-	public String deleteUser(@PathVariable String id) {
+	@DeleteMapping("/{id}")
+	public ResponseEntity deleteUser(@PathVariable String id) {
 		userRepository.deleteById(id);
-		return "Deleted user with id: " + id;
+		return ResponseEntity.ok("Deleted user with id: " + id);
 	}
 
 
-	/* Gonna try doing this from groups instead
-	@PostMapping("/joinGroup")
-	public String joinGroup(@NotNull @RequestBody UserGroup userGroup) {
-		userGroupRepository
-
-		return String.format("Hello, newly joined group %s", groupId);
-	}*/
 	
-	
-	
-	
-	
-	
-	
-	
+	/*
 	@GetMapping
 	public String hello(@RequestParam(value = "name", defaultValue = "world") String name) {
 		return String.format("Hello, %s", name);
 	}
-
-	/*This will be done in by group controller
-	@PostMapping("/groups")
-	public String createGroup() {
-		return "Hello, new group";
 	}*/
 
 

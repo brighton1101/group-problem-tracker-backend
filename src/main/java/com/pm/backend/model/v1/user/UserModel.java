@@ -15,7 +15,7 @@ import java.util.List;
 @Document(collection = "users")
 public class UserModel {
 
-    @ApiModelProperty(hidden = true)
+    //@ApiModelProperty(hidden = true)
     private String id;
     private String userName;
     private String userPassword;
@@ -24,7 +24,6 @@ public class UserModel {
     private int schemaVersion;
 
     //solutions embedded?
-
     //private List<groups> referenced
     //@DBRef(lazy=true)
     //private List<GroupModel> groups;
