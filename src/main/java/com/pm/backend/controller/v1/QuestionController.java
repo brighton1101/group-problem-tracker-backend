@@ -5,7 +5,9 @@ import com.pm.backend.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import static com.pm.backend.controller.v1.SchemaVersion.v;
+
 import java.util.Optional;
 
 @RestController
@@ -23,8 +25,19 @@ public class QuestionController {
     }
 
     @GetMapping("/{id}")
-    public Optional<QuestionModel> getQuestion(@PathVariable int id) {
-        return questionRepository.findById(id);
+    public ResponseEntity getQuestion(@PathVariable int id) {
+        Optional<QuestionModel> question = questionRepository.findById(id);
+        if (question.isPresent()) {
+            QuestionModel questionModel = question.get();
+            return ResponseEntity.ok().body(new QuestionModel().setId(questionModel.getId())
+                    .setQuestionDescription(questionModel.getQuestionDescription())
+                    .setQuestionDifficulty(questionModel.getQuestionDifficulty())
+                    .setQuestionTitle(questionModel.getQuestionTitle())
+                    .setQuestionTopics(questionModel.getQuestionTopics())
+                    .setQuestionUrl(questionModel.getQuestionUrl()));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")

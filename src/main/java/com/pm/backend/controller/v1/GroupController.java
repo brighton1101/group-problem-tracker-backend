@@ -26,18 +26,27 @@ public class GroupController {
 
         //TODO this could be moved to a mapper
         GroupModel g = new GroupModel().setGroupName(group.getGroupName())
-                                        .setGroupOwner(group.getGroupOwner())
-                                        .setUsers(group.getUsers())
-                                        .setSchemaVersion(v);
+                .setGroupOwner(group.getGroupOwner())
+                .setUsers(group.getUsers())
+                .setSchemaVersion(v);
         String gid = groupRepository.save(g).getId();
 
         return ResponseEntity.ok("Added group: " + gid);
     }
 
-    //TODO fix this to use a response object instead of returning the model
-    @GetMapping
-    public Optional<GroupModel> getGroup(@PathVariable String id) {
-        return groupRepository.findById(id);
+    @GetMapping("{id}")
+    public ResponseEntity getGroup(@PathVariable String id) {
+
+        Optional<GroupModel> group = groupRepository.findById(id);
+        if (group.isPresent()) {
+            GroupModel groupModel = group.get();
+            return ResponseEntity.ok().body(new GroupModel().setGroupName(groupModel.getGroupName())
+                    .setGroupOwner(groupModel.getGroupOwner())
+                    .setUsers(groupModel.getUsers())
+                    .setId(groupModel.getId()));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/users")
