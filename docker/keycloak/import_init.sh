@@ -5,6 +5,7 @@ docker run --rm  \
    --name keycloak \
    --net keycloak-network \
    -p 8180:8180 \
+   -e KEYCLOAK_IMPORT=/tmp/ProblemTracker.json \
    -e KEYCLOAK_USER=admin \
    -e KEYCLOAK_PASSWORD=admin \
    -e DB_VENDOR=mysql \
