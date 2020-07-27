@@ -1,3 +1,5 @@
+#!/bin/bash
+#note that once this is run the first time, you can restart mysql with docker restart mysql
 docker run --name mysql -d \
    --net keycloak-network \
    -e MYSQL_DATABASE=keycloak \
