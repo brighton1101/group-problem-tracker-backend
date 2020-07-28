@@ -38,6 +38,7 @@ class UserController {
 		userRepository.save(user);
 		return ResponseEntity.ok("Added user: " + user.getId());
 	}
+	}*/
 
     @Autowired
     private UserRepository userRepository;
