@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.Optional;
 
 import static com.pm.backend.controller.v1.SchemaVersion.v;
@@ -21,29 +22,13 @@ import static com.pm.backend.controller.v1.SchemaVersion.v;
  * - Leave group endpoint
  * - Get group stats?
  */
+@RolesAllowed("ROLE_USER")
 @RestController
 @RequestMapping("/v1/users")
 class UserController {
-	
-	@Autowired
-	private UserRepository userRepository;
-	//@Autowired
-	//private UserGroupRepository userGroupRepository;
-
-	@PostMapping
-	public ResponseEntity addUser(@NotNull @RequestBody AddUserRequest addUserRequest) {
-		UserModel user = new UserModel().setUserName(addUserRequest.getUserName())
-				.setUserPassword(addUserRequest.getUserPassword())
-				.setSchemaVersion(v);
-		userRepository.save(user);
-		return ResponseEntity.ok("Added user: " + user.getId());
-	}
-	}*/
 
     @Autowired
     private UserRepository userRepository;
-    //@Autowired
-    //private UserGroupRepository userGroupRepository;
 
     @PostMapping
     public ResponseEntity addUser(@NotNull @RequestBody AddUserRequest addUserRequest) {

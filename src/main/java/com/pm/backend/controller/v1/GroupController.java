@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
 import java.util.Optional;
 
 import static com.pm.backend.controller.v1.SchemaVersion.v;
@@ -34,6 +35,7 @@ public class GroupController {
         return ResponseEntity.ok("Added group: " + gid);
     }
 
+
     @GetMapping("{id}")
     public ResponseEntity getGroup(@PathVariable String id) {
 
@@ -47,11 +49,6 @@ public class GroupController {
         } else {
             return ResponseEntity.notFound().build();
         }
-    }
-
-    @PostMapping("/users")
-    public ResponseEntity addUser(@NotNull @RequestBody UserJoinGroupRequest request) {
-        return ResponseEntity.ok(groupRepository.findGroupAddUser(request));
     }
 
     @PostMapping("/users")
