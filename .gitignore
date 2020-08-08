@@ -4,3 +4,5 @@
 target/
 .idea/
 backend.iml
+docker/keycloak/*.log
+docker/keycloak/hsperfdata_jboss/
