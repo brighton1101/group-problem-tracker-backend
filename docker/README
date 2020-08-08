@@ -1,0 +1,3 @@
+1. Run mysql/init.sh to start the mysql ser
+2. Run keycloak/import_init.sh
+3. Run keycloak/authorize.sh to get a jwt with the test user credentials
