@@ -54,8 +54,8 @@ public class KeyCloakAdapterConfig extends KeycloakWebSecurityConfigurerAdapter 
         super.configure(http);
         http
                 .authorizeRequests()
-                .antMatchers("/customers*").hasRole("USER")
-                .antMatchers("/admin*").hasRole("ADMIN")
+                //.antMatchers("/customers*").hasRole("USER")
+                //.antMatchers("/admin*").hasRole("ADMIN")
                 .anyRequest().permitAll();   //This allows all traffic, only to be used during development
                 //.anyRequest().authenticated();
     }
