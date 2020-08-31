@@ -36,10 +36,11 @@ public class UserManagementController {
                 String user = creds[0];
                 String password = creds[1];
 
-                KeyCloakUserAdapter authAdapter = KeyCloakUserAdapter.getInstance();
-                AccessToken accessToken = authAdapter.login(user, password);
+                //KeyCloakUserAdapter authAdapter = KeyCloakUserAdapter.getInstance();
+                //AccessToken accessToken = authAdapter.login(user, password);
 
-                return ResponseEntity.ok(accessToken);
+                //return ResponseEntity.ok(accessToken);
+                return ResponseEntity.badRequest().build();
 
             } else {
                 //This means the auth header is sent incorrectly
