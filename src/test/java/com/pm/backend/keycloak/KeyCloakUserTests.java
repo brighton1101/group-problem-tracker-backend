@@ -2,6 +2,7 @@ package com.pm.backend.keycloak;
 
 
 
+import com.pm.backend.security.AccessToken;
 import com.pm.backend.security.KeyCloakUserAdapter;
 import com.pm.backend.security.UserContext;
 import org.junit.BeforeClass;
@@ -30,7 +31,14 @@ public class KeyCloakUserTests {
     public static void setup() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         logger.info("Begin setup");
         context = new UserContext(getMockContext());
-        keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(context);
+        try {
+            keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(context);
+        }
+        catch(Exception e) {
+            logger.error("Exception in setup" + e);
+            e.printStackTrace();
+            throw e;
+        }
 
         logger.info("finished setup");
     }
@@ -38,6 +46,16 @@ public class KeyCloakUserTests {
     @Test
     public void login(){
         logger.info("Logintest");
+        try {
+            AccessToken token = keyCloakUserAdapter.login("test1", "test1");
+
+            logger.info("AccessToken is {}", token.toString());
+
+            token = keyCloakUserAdapter.login("test1", "failed");
+        }catch(Exception e) {
+            logger.error("Exception in login test" + e);
+            e.printStackTrace();
+        }
     }
 
 

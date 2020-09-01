@@ -1,11 +1,13 @@
 package com.pm.backend.security;
 
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.keycloak.admin.client.Keycloak;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.representations.AccessTokenResponse;
@@ -44,6 +46,7 @@ public class KeyCloakUserAdapter implements  UserAuth {
 
         sslContext = SSLContextBuilder.create().loadTrustMaterial(new TrustAllStrategy()).build();
         userRealm = KeyCloakRealm.userRealm(env);
+        adminRealm = KeyCloakRealm.adminRealm(env);
         authzClient = createAuthzClient(userRealm);
 
 
@@ -74,14 +77,20 @@ public class KeyCloakUserAdapter implements  UserAuth {
     @Override
     public AccessToken login(String user, String password) throws Exception {
         AuthorizationRequest request = new AuthorizationRequest();
+        AuthorizationResponse authorizationResponse;
 
-        AuthorizationResponse authorizationResponse = authzClient.authorization(user, password).authorize(request);
+
+        try {
+            authorizationResponse = authzClient.authorization(user, password).authorize(request);
+        } catch(Exception e) {
+            throw e;
+        }
 
         return convertResponseToToken(authorizationResponse);
     }
 
     @Override
-    public AccessToken refresh(String refreshCode) throws Exception {
+    public AccessToken refresh(String refreshToken) throws Exception {
         return null;
     }
 
@@ -92,6 +101,9 @@ public class KeyCloakUserAdapter implements  UserAuth {
 
     @Override
     public void register(String user, String email, String password) throws Exception {
+        //TODO add some validation
+
+        Keycloak keycloak = getAdminClient();
 
     }
 
@@ -100,7 +112,17 @@ public class KeyCloakUserAdapter implements  UserAuth {
 
         //TODO add additional fields as necessary
         accessToken.setToken(accessTokenResponse.getToken());
+        accessToken.setRefreshToken(accessTokenResponse.getRefreshToken());
 
         return accessToken;
+    }
+
+    private Keycloak getAdminClient() {
+        return Keycloak.getInstance(
+          adminRealm.getServerUrl(),
+          adminRealm.getRealmName(),
+          adminRealm.getAdminName(),
+          adminRealm.getAdminPassword()
+        );
     }
 }

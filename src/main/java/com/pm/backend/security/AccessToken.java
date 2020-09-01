@@ -24,4 +24,16 @@ public class AccessToken {
 
     @JsonProperty("scope")
     protected String scope;
+
+    @Override
+    public String toString() {
+        return "AccessToken{" +
+                "token='" + token + '\'' +
+                ", expiresIn=" + expiresIn +
+                ", refreshExpiresIn=" + refreshExpiresIn +
+                ", refreshToken='" + refreshToken + '\'' +
+                ", tokenType='" + tokenType + '\'' +
+                ", scope='" + scope + '\'' +
+                '}';
+    }
 }

@@ -10,8 +10,8 @@ public class MockContext {
         Environment env = Mockito.mock(Environment.class);
 
         Mockito.when(env.getProperty("keycloak.server")).thenReturn("http://localhost:8180/auth");
-        Mockito.when(env.getProperty("keycloak.user-realm.url")).thenReturn("http://localhost:8180/auth/realms/testrealm");
-        Mockito.when(env.getProperty("keycloak.user-realm.name")).thenReturn("testrealm");
+        Mockito.when(env.getProperty("keycloak.user-realm.url")).thenReturn("http://localhost:8180/auth/realms/ProblemTracker");
+        Mockito.when(env.getProperty("keycloak.user-realm.name")).thenReturn("ProblemTracker");
         Mockito.when(env.getProperty("keycloak.user-realm.client.id")).thenReturn("login-app");
         Mockito.when(env.getProperty("keycloak.user-realm.client.secret")).thenReturn("479eeef9-e332-42ad-bdfe-3651272f640a");
 
