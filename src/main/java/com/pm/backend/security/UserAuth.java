@@ -8,5 +8,5 @@ public interface UserAuth {
 
     public void logout(String user) throws Exception;
 
-    public void register(String user, String email, String password) throws Exception;
+    public KeyCloakUser register(KeyCloakUser registerUser) throws Exception;
 }

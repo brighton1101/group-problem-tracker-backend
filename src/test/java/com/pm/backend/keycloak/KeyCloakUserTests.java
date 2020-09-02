@@ -3,6 +3,7 @@ package com.pm.backend.keycloak;
 
 
 import com.pm.backend.security.AccessToken;
+import com.pm.backend.security.KeyCloakUser;
 import com.pm.backend.security.KeyCloakUserAdapter;
 import com.pm.backend.security.UserContext;
 import org.junit.BeforeClass;
@@ -43,7 +44,7 @@ public class KeyCloakUserTests {
         logger.info("finished setup");
     }
 
-    @Test
+    //@Test()
     public void login(){
         logger.info("Logintest");
         try {
@@ -51,8 +52,25 @@ public class KeyCloakUserTests {
 
             logger.info("AccessToken is {}", token.toString());
 
-            token = keyCloakUserAdapter.login("test1", "failed");
+            //token = keyCloakUserAdapter.login("test1", "failed");
         }catch(Exception e) {
+            logger.error("Exception in login test" + e);
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void registerTest(){
+        logger.info("Start register test");
+
+        KeyCloakUser bob = new KeyCloakUser()
+                .setFirstName("bob")
+                .setLastName("boi")
+                .setPassword("lahey")
+                .setUserName("bob123");
+        try {
+            KeyCloakUser user = keyCloakUserAdapter.register(bob);
+        }catch (Exception e) {
             logger.error("Exception in login test" + e);
             e.printStackTrace();
         }
