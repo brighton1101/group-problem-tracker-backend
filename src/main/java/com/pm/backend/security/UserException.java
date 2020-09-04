@@ -11,6 +11,8 @@ import lombok.Setter;
 @Setter
 public class UserException extends Exception {
 
+
+
     public enum REASON {
         USER_ALREADY_EXISTS,
         USER_CREATION_HTTP_FAILURE,
@@ -20,6 +22,11 @@ public class UserException extends Exception {
 
     private REASON reason;
     private Exception baseException;
+
+    public UserException(REASON reason) {
+        super();
+        this.reason = reason;
+    }
 
     public UserException(Exception e, REASON reason) {
         super(e);

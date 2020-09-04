@@ -16,6 +16,7 @@ import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.authorization.AuthorizationRequest;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
@@ -85,13 +86,13 @@ public class KeyCloakUserAdapter implements UserAuth {
 
 
     @Override
-    public AccessToken login(String user, String password) throws Exception {
+    public AccessToken login(KeyCloakUser user) throws Exception {
         AuthorizationRequest request = new AuthorizationRequest();
         AuthorizationResponse authorizationResponse;
 
 
         try {
-            authorizationResponse = authzClient.authorization(user, password).authorize(request);
+            authorizationResponse = authzClient.authorization(user.getUserName(), user.getPassword()).authorize(request);
         } catch (Exception e) {
             throw e;
         }
@@ -165,6 +166,8 @@ public class KeyCloakUserAdapter implements UserAuth {
 
                     UserResource userResource = usersResource.get(userId);
                     keyCloakUser.setTimeCreated(new Date(userResource.toRepresentation().getCreatedTimestamp()));
+                    
+                    //TODO the user roles should also be added to the returned keycloakuser
 
                 }
                 else {
@@ -180,12 +183,35 @@ public class KeyCloakUserAdapter implements UserAuth {
         }
         else {
             //user already exists
-            throw new UserException(new Exception(), UserException.REASON.USER_ALREADY_EXISTS);
+            throw new UserException(UserException.REASON.USER_ALREADY_EXISTS);
         }
 
         keycloak.close();
 
         return keyCloakUser;
+    }
+
+
+    public KeyCloakUser getUserByName(String userName) throws UserException {
+        Keycloak keycloak = getAdminClient();
+        List<UserRepresentation> userReps = keycloak.realm(userRealm.getRealmName()).users().search(userName);
+
+        if(userReps == null || userReps.isEmpty()) {
+            throw new UserException(UserException.REASON.USER_DOESNT_EXIST);
+        }
+
+        KeyCloakUser user = new KeyCloakUser(userReps.get(0));
+
+        List<RoleRepresentation> roleRepresentations = getUserResource(keycloak, user.getId()).roles().realmLevel().listEffective();
+        if(!roleRepresentations.isEmpty()) {
+            List<String> roles = new ArrayList<>();
+            for(RoleRepresentation roleRep : roleRepresentations) {
+                roles.add(roleRep.getName());
+            }
+            user.setRoles(roles);
+        }
+
+        return user;
     }
 
     private boolean userExists(KeyCloakUser user, UsersResource usersResource) {

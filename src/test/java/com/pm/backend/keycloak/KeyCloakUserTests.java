@@ -60,7 +60,11 @@ public class KeyCloakUserTests {
     public void logoutTest(){
         logger.info("Logouttest");
         try {
-            keyCloakUserAdapter.logout("0835b82a-8f53-403d-9c8e-2decde188fcb");
+
+            KeyCloakUser user = keyCloakUserAdapter.getUserByName("test1");
+            logger.info("User details: " + user);
+
+            //keyCloakUserAdapter.logout(user.getId());
 
 
         }catch(UserException e) {
