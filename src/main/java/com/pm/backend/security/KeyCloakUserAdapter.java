@@ -19,6 +19,8 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.authorization.AuthorizationRequest;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.parameters.P;
 
@@ -29,11 +31,15 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import static com.pm.backend.security.UserException.REASON.USER_CREATION_HTTP_FAILURE;
+
 /**
  * Currently a singleton, to avoid having multiple adapters present.
  * Only need one adapter across the entire application to authenticate users
  */
 public class KeyCloakUserAdapter implements UserAuth {
+
+    private Logger logger = LoggerFactory.getLogger(KeyCloakUserAdapter.class);
 
     private static KeyCloakUserAdapter instance = null;
 
@@ -98,9 +104,22 @@ public class KeyCloakUserAdapter implements UserAuth {
         return null;
     }
 
-    @Override
-    public void logout(String user) throws Exception {
 
+    /**
+     *
+     * @param userId This is the keycloak-provided userId, NOT the username
+     * @throws UserException
+     */
+    @Override
+    public void logout(String userId) throws UserException {
+        Keycloak keycloak = getAdminClient();
+
+        UserResource userResource = getUserResource(keycloak, userId);
+
+        logger.info("userResource: {}", userResource);
+
+        userResource.logout();
+        keycloak.close();
     }
 
     /**
@@ -111,7 +130,7 @@ public class KeyCloakUserAdapter implements UserAuth {
      * Currently assumes all users will be added to the same userRealm
      */
     @Override
-    public KeyCloakUser register(KeyCloakUser registerUser) throws Exception {
+    public KeyCloakUser register(KeyCloakUser registerUser) throws UserException {
         //TODO add some validation
 
         KeyCloakUser keyCloakUser = null;
@@ -120,7 +139,9 @@ public class KeyCloakUserAdapter implements UserAuth {
 
 
         RealmResource userRealmResource = keycloak.realm(userRealm.getRealmName());
+        //logger.info("userRealmresource clients: {}", userRealmResource.clients());
         UsersResource usersResource = userRealmResource.users();
+        //logger.info("users resource {}", usersResource.list());
 
         if(!userExists(registerUser, usersResource)) {
             UserRepresentation userRepresentation = new UserRepresentation();
@@ -134,6 +155,8 @@ public class KeyCloakUserAdapter implements UserAuth {
 
 
             try(Response response = usersResource.create(userRepresentation)) {
+
+                logger.info("response: {}", response);
                 if(response.getStatus()==201) {
                     String[] pathArr = response.getLocation().getPath().split("/");
                     String userId = pathArr[pathArr.length-1];
@@ -145,15 +168,19 @@ public class KeyCloakUserAdapter implements UserAuth {
 
                 }
                 else {
-                    //bad news, either throw a custom exception, or just return null for user
+                    //bad news, either throw a custom exception
 
-                    throw new Exception();
+                    throw new UserException(new Exception(), USER_CREATION_HTTP_FAILURE);
 
                 }
 
             }
 
 
+        }
+        else {
+            //user already exists
+            throw new UserException(new Exception(), UserException.REASON.USER_ALREADY_EXISTS);
         }
 
         keycloak.close();
@@ -164,6 +191,24 @@ public class KeyCloakUserAdapter implements UserAuth {
     private boolean userExists(KeyCloakUser user, UsersResource usersResource) {
         List users = usersResource.search(user.getUserName());
         return !users.isEmpty();
+    }
+
+    private UserResource getUserResource(Keycloak keycloak, String userId) throws UserException{
+
+
+
+        UserResource userResource = keycloak.realm(userRealm.getRealmName()).users().get(userId);
+
+        //try doing something with the userResource, to make sure it works
+        try {
+            logger.info("Got here1");
+            userResource.toRepresentation();
+            logger.info("Got here2");
+        }
+        catch (Exception e) {
+            throw new UserException(e, UserException.REASON.USER_DOESNT_EXIST);
+        }
+        return userResource;
     }
 
     private AccessToken convertResponseToToken(AccessTokenResponse accessTokenResponse) {
@@ -183,7 +228,7 @@ public class KeyCloakUserAdapter implements UserAuth {
                 adminRealm.getAdminName(),
                 adminRealm.getAdminPassword(),
                 adminRealm.getClientId(),
-                null,
+                adminRealm.getClientSecret(),
                 sslContext
         );
     }

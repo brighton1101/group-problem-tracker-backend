@@ -2,10 +2,7 @@ package com.pm.backend.keycloak;
 
 
 
-import com.pm.backend.security.AccessToken;
-import com.pm.backend.security.KeyCloakUser;
-import com.pm.backend.security.KeyCloakUserAdapter;
-import com.pm.backend.security.UserContext;
+import com.pm.backend.security.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +42,7 @@ public class KeyCloakUserTests {
     }
 
     //@Test()
-    public void login(){
+    public void loginTest(){
         logger.info("Logintest");
         try {
             AccessToken token = keyCloakUserAdapter.login("test1", "test1");
@@ -59,7 +56,20 @@ public class KeyCloakUserTests {
         }
     }
 
-    @Test
+    @Test()
+    public void logoutTest(){
+        logger.info("Logouttest");
+        try {
+            keyCloakUserAdapter.logout("0835b82a-8f53-403d-9c8e-2decde188fcb");
+
+
+        }catch(UserException e) {
+            logger.error("Exception in logout test" + e.toString());
+            e.printStackTrace();
+        }
+    }
+
+    //@Test
     public void registerTest(){
         logger.info("Start register test");
 
@@ -70,8 +80,10 @@ public class KeyCloakUserTests {
                 .setUserName("bob123");
         try {
             KeyCloakUser user = keyCloakUserAdapter.register(bob);
+
+            logger.info("Successfully registered user: {}", user);
         }catch (Exception e) {
-            logger.error("Exception in login test" + e);
+            logger.error("Exception in register test" + e);
             e.printStackTrace();
         }
     }

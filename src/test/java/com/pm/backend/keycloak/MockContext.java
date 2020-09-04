@@ -19,8 +19,8 @@ public class MockContext {
         Mockito.when(env.getProperty("keycloak.admin-realm.name")).thenReturn("ProblemTracker");
         Mockito.when(env.getProperty("keycloak.admin-realm.username")).thenReturn("misstracy");
         Mockito.when(env.getProperty("keycloak.admin-realm.password")).thenReturn("michael123");
-        Mockito.when(env.getProperty("keycloak.admin-realm.client.id")).thenReturn("admin-client");
-        Mockito.when(env.getProperty("keycloak.admin-realm.client.secret")).thenReturn( "d378b422-241a-4bb9-850f-99df6bccf701");
+        Mockito.when(env.getProperty("keycloak.admin-realm.client.id")).thenReturn("admin-cli");
+        Mockito.when(env.getProperty("keycloak.admin-realm.client.secret")).thenReturn( "f1f9e1f8-c2cb-4cfc-aad0-9cbbbebb3853");
 
 
         return env;
