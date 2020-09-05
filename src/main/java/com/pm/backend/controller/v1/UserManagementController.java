@@ -2,10 +2,13 @@ package com.pm.backend.controller.v1;
 
 
 import com.pm.backend.security.*;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +32,9 @@ public class UserManagementController {
 
     @GetMapping("/login")
     public ResponseEntity login(
-            @RequestHeader(value = "Authorization") String authHeader
-    ) {
+            @RequestHeader(value = "Authorization") String authHeader) {
+
+        logger.info("Here {} ", authHeader);
 
         if (authHeader != null && authHeader.startsWith("Basic")) {
             String credsBase64 = authHeader.replace("Basic", "");
@@ -41,6 +45,8 @@ public class UserManagementController {
             String userName = creds[0];
             String password = creds[1];
 
+            logger.info("Got {} : {}", userName, password);
+
             try {
                 KeyCloakUser user = new KeyCloakUser()
                         .setUserName(userName)
@@ -49,13 +55,13 @@ public class UserManagementController {
                 KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
                 AccessToken accessToken = keyCloakUserAdapter.login(user);
 
-                //return ResponseEntity.ok(accessToken);
-                return ResponseEntity.badRequest().build();
+                return ResponseEntity.ok(accessToken);
+                //return ResponseEntity.badRequest().build();
             } catch (Exception e) {
                 //exception thrown by keycloak
                 logger.error(e.getMessage());
-
-                return ResponseEntity.badRequest().build();
+                //🥰
+                return new ResponseEntity(HttpStatus.I_AM_A_TEAPOT);
             }
 
         } else {
@@ -66,6 +72,7 @@ public class UserManagementController {
 
     @PostMapping("/users")
     public ResponseEntity register(@RequestBody KeyCloakUser user) {
+        logger.info("trying to register a user");
         try {
             KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
             KeyCloakUser registeredUser = keyCloakUserAdapter.register(user);
@@ -79,8 +86,10 @@ public class UserManagementController {
         }
     }
 
-    @GetMapping("/logout")
-    public ResponseEntity logout(@RequestBody String userId) {
+    @GetMapping(value = "/logout")
+    public ResponseEntity logout(@RequestHeader(value="X-UserId") String userId) {
+
+        logger.info("logout request for {}", userId);
         try {
             KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
             keyCloakUserAdapter.logout(userId);

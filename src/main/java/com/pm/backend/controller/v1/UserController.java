@@ -3,7 +3,10 @@ package com.pm.backend.controller.v1;
 import com.pm.backend.controller.v1.request.AddUserRequest;
 import com.pm.backend.model.v1.user.UserModel;
 import com.pm.backend.repository.UserRepository;
+import com.pm.backend.security.UserContext;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +30,8 @@ import static com.pm.backend.controller.v1.SchemaVersion.v;
 @RequestMapping("/v1/users")
 class UserController {
 
+    Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserRepository userRepository;
 
@@ -42,6 +47,7 @@ class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity getUser(@PathVariable String id) {
+        logger.info("get user");
 
         Optional<UserModel> user = userRepository.findById(id);
         if (user.isPresent()) {

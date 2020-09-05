@@ -13,6 +13,7 @@ docker run --rm  \
    -e DB_DATABASE=keycloak \
    -e DB_USER=keycloak \
    -e DB_PASSWD=password \
+   -e KEYCLOAK_LOGLEVEL=DEBUG \
    -v $DIR:/tmp \
    -it quay.io/keycloak/keycloak \
    -Djboss.http.port=8180
