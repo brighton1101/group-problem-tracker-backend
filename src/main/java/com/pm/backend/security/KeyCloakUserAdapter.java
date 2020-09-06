@@ -23,7 +23,6 @@ import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.parameters.P;
 
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.Response;
@@ -85,6 +84,8 @@ public class KeyCloakUserAdapter implements UserAuth {
     }
 
 
+
+
     @Override
     public AccessToken login(KeyCloakUser user) throws Exception {
         AuthorizationRequest request = new AuthorizationRequest();
@@ -104,6 +105,8 @@ public class KeyCloakUserAdapter implements UserAuth {
     public AccessToken refresh(String refreshToken) throws Exception {
         return null;
     }
+
+
 
 
     /**
@@ -191,6 +194,12 @@ public class KeyCloakUserAdapter implements UserAuth {
         return keyCloakUser;
     }
 
+    public KeyCloakUser getUserById(String id) throws UserException {
+        Keycloak keycloak = getAdminClient();
+        UserResource userResource = getUserResource(keycloak, id);
+        return convertResourceToUser(keycloak, userResource);
+    }
+
 
     public KeyCloakUser getUserByName(String userName) throws UserException {
         Keycloak keycloak = getAdminClient();
@@ -237,14 +246,30 @@ public class KeyCloakUserAdapter implements UserAuth {
         return userResource;
     }
 
+    private KeyCloakUser convertResourceToUser(Keycloak keycloak, UserResource userResource) {
+        KeyCloakUser user = new KeyCloakUser(userResource.toRepresentation());
+
+        List<RoleRepresentation> roleRepresentations = userResource.roles().realmLevel().listEffective();
+        if(!roleRepresentations.isEmpty()) {
+            List<String> roles = new ArrayList<>();
+            for(RoleRepresentation roleRep : roleRepresentations) {
+                roles.add(roleRep.getName());
+            }
+            user.setRoles(roles);
+        }
+
+        return user;
+
+    }
+
     private AccessToken convertResponseToToken(AccessTokenResponse accessTokenResponse) {
-        AccessToken accessToken = new AccessToken();
-
-        //TODO add additional fields as necessary
-        accessToken.setToken(accessTokenResponse.getToken());
-        accessToken.setRefreshToken(accessTokenResponse.getRefreshToken());
-
-        return accessToken;
+        return new AccessToken()
+                .setToken(accessTokenResponse.getToken())
+                .setRefreshToken(accessTokenResponse.getRefreshToken())
+                .setExpiresIn(accessTokenResponse.getExpiresIn())
+                .setRefreshExpiresIn(accessTokenResponse.getRefreshExpiresIn())
+                .setTokenType(accessTokenResponse.getTokenType())
+                .setScope(accessTokenResponse.getScope());
     }
 
     private Keycloak getAdminClient() {

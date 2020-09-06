@@ -41,7 +41,7 @@ public class KeyCloakUserTests {
         logger.info("finished setup");
     }
 
-    @Test()
+    //@Test()
     public void loginTest(){
         logger.info("Logintest");
         try {
@@ -88,6 +88,21 @@ public class KeyCloakUserTests {
             logger.info("Successfully registered user: {}", user);
         }catch (Exception e) {
             logger.error("Exception in register test" + e);
+            e.printStackTrace();
+        }
+    }
+
+    @Test()
+    public void getProfileTest(){
+        logger.info("getProfileTest");
+        try {
+            KeyCloakUser user = keyCloakUserAdapter.getUserById("0835b82a-8f53-403d-9c8e-2decde188fcb");
+
+            logger.info("User is {}", user.toString());
+
+            //token = keyCloakUserAdapter.login("test1", "failed");
+        }catch(Exception e) {
+            logger.error("Exception in getProfileTest " + e);
             e.printStackTrace();
         }
     }

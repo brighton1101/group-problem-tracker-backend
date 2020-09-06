@@ -37,11 +37,11 @@ public class UserManagementController {
         logger.info("Here {} ", authHeader);
 
         if (authHeader != null && authHeader.startsWith("Basic")) {
-            String credsBase64 = authHeader.replace("Basic", "");
+            String credsBase64 = authHeader.replace("Basic", "").trim();
             byte[] credsBytes = Base64.getDecoder().decode(credsBase64);
             String credsString = new String(credsBytes, StandardCharsets.UTF_8);
 
-            String[] creds = credsString.split(":", 1);
+            String[] creds = credsString.split(":", 2);
             String userName = creds[0];
             String password = creds[1];
 
@@ -51,6 +51,7 @@ public class UserManagementController {
                 KeyCloakUser user = new KeyCloakUser()
                         .setUserName(userName)
                         .setPassword(password);
+
 
                 KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
                 AccessToken accessToken = keyCloakUserAdapter.login(user);
@@ -84,6 +85,30 @@ public class UserManagementController {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @GetMapping(value="/users/{userId}",
+                produces = {"application/json"})
+    public ResponseEntity getUserProfile(@PathVariable String userId) {
+
+        logger.info("Get profile for user {}", userId);
+
+        try {
+            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
+            KeyCloakUser user = keyCloakUserAdapter.getUserById(userId);
+
+            return ResponseEntity.ok(user);
+        }catch (UserException e) {
+            //the user doesn't exist
+            return ResponseEntity.notFound().build();
+
+        }catch (Exception e) {
+            //some other error
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().build();
+
+        }
+
     }
 
     @GetMapping(value = "/logout")
