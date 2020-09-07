@@ -1,6 +1,5 @@
-package com.pm.backend.security;
+package com.pm.backend.security.representations;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;

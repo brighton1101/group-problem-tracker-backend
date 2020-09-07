@@ -1,5 +1,8 @@
 package com.pm.backend.security;
 
+import com.pm.backend.security.representations.AccessToken;
+import com.pm.backend.security.representations.KeyCloakUser;
+
 public interface UserAuth {
 
     public AccessToken login(KeyCloakUser user) throws Exception;

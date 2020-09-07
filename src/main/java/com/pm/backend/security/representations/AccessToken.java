@@ -1,4 +1,4 @@
-package com.pm.backend.security;
+package com.pm.backend.security.representations;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -23,6 +23,15 @@ public class AccessToken {
 
     @JsonProperty("token_type")
     protected String tokenType;
+
+    @JsonProperty("id_token")
+    protected String idToken;
+
+    @JsonProperty("not-before-policy")
+    protected int notBeforePolicy;
+
+    @JsonProperty("session_state")
+    protected String sessionState;
 
     @JsonProperty("scope")
     protected String scope;

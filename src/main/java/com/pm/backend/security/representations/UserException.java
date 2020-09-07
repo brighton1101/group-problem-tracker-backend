@@ -1,4 +1,4 @@
-package com.pm.backend.security;
+package com.pm.backend.security.representations;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +17,8 @@ public class UserException extends Exception {
         USER_ALREADY_EXISTS,
         USER_CREATION_HTTP_FAILURE,
         USER_DOESNT_EXIST,
+        HTTP_POST_FAIL,
+        HTTP_GET_FAIL,
         UNKNOWN_REASON;
     }
 

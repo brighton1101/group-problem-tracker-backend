@@ -1,4 +1,4 @@
-package com.pm.backend.security;
+package com.pm.backend.security.representations;
 
 import lombok.Getter;
 import org.springframework.core.env.Environment;

@@ -1,6 +1,5 @@
 package com.pm.backend.keycloak;
 
-import com.pm.backend.security.UserContext;
 import org.mockito.Mockito;
 import org.springframework.core.env.Environment;
 

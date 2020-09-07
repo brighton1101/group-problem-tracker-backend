@@ -3,7 +3,6 @@ package com.pm.backend.controller.v1;
 import com.pm.backend.controller.v1.request.AddUserRequest;
 import com.pm.backend.model.v1.user.UserModel;
 import com.pm.backend.repository.UserRepository;
-import com.pm.backend.security.UserContext;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -3,13 +3,15 @@ package com.pm.backend.keycloak;
 
 
 import com.pm.backend.security.*;
+import com.pm.backend.security.representations.AccessToken;
+import com.pm.backend.security.representations.KeyCloakUser;
+import com.pm.backend.security.representations.KeyCloakContext;
+import com.pm.backend.security.representations.UserException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.security.KeyManagementException;
@@ -23,12 +25,12 @@ public class KeyCloakUserTests {
     static Logger logger = LoggerFactory.getLogger(KeyCloakUserTests.class);
 
     protected static KeyCloakUserAdapter keyCloakUserAdapter;
-    protected static UserContext context;
+    protected static KeyCloakContext context;
 
     @BeforeClass
     public static void setup() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         logger.info("Begin setup");
-        context = new UserContext(getMockContext());
+        context = new KeyCloakContext(getMockContext());
         try {
             keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(context);
         }
@@ -52,6 +54,23 @@ public class KeyCloakUserTests {
             //token = keyCloakUserAdapter.login("test1", "failed");
         }catch(Exception e) {
             logger.error("Exception in login test" + e);
+            e.printStackTrace();
+        }
+    }
+
+    @Test()
+    public void refreshTokenTest(){
+        logger.info("refreshTokenTest");
+        try {
+
+            AccessToken token1 = keyCloakUserAdapter.login(new KeyCloakUser().setUserName("test1").setPassword("test1"));
+            logger.info("Initial   token is {}", token1.toString());
+            AccessToken token2 = keyCloakUserAdapter.refresh(token1.getRefreshToken());
+
+            logger.info("Refreshed token is {}", token2.toString());
+
+        }catch(Exception e) {
+            logger.error("Exception in refreshTokenTest " + e);
             e.printStackTrace();
         }
     }
@@ -92,7 +111,7 @@ public class KeyCloakUserTests {
         }
     }
 
-    @Test()
+    //@Test()
     public void getProfileTest(){
         logger.info("getProfileTest");
         try {

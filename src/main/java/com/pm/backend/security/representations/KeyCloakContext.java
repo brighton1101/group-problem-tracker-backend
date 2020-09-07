@@ -1,8 +1,8 @@
-package com.pm.backend.security;
+package com.pm.backend.security.representations;
 
 import org.springframework.core.env.Environment;
 
-public class UserContext {
+public class KeyCloakContext {
 
     public Environment getEnv() {
         return env;
@@ -10,7 +10,7 @@ public class UserContext {
 
     private final Environment env;
 
-    public UserContext(Environment env) {
+    public KeyCloakContext(Environment env) {
         this.env = env;
     }
 }

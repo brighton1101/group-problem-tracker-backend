@@ -1,7 +1,7 @@
 package com.pm.backend.security;
 
-import org.apache.catalina.User;
-import org.apache.http.client.HttpResponseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pm.backend.security.representations.*;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustAllStrategy;
@@ -31,7 +31,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static com.pm.backend.security.UserException.REASON.USER_CREATION_HTTP_FAILURE;
+import static com.pm.backend.security.representations.UserException.REASON.USER_CREATION_HTTP_FAILURE;
+import static org.keycloak.OAuth2Constants.*;
 
 /**
  * Currently a singleton, to avoid having multiple adapters present.
@@ -46,9 +47,12 @@ public class KeyCloakUserAdapter implements UserAuth {
     private final SSLContext sslContext;
     private KeyCloakRealm userRealm;
     private KeyCloakRealm adminRealm;
+
+
+    //TODO move this out into its own singleton
     private AuthzClient authzClient;
 
-    public static synchronized KeyCloakUserAdapter getInstance(UserContext context) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public static synchronized KeyCloakUserAdapter getInstance(KeyCloakContext context) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         if (instance == null) {
             return new KeyCloakUserAdapter(context.getEnv());
         }
@@ -103,6 +107,26 @@ public class KeyCloakUserAdapter implements UserAuth {
 
     @Override
     public AccessToken refresh(String refreshToken) throws Exception {
+        String url = userRealm.getRealmUrl() + "/protocol/openid-connect/token";
+        Map<String, String> params = new HashMap<>();
+
+        params.put(CLIENT_ID, userRealm.getClientId());
+        params.put(CLIENT_SECRET, userRealm.getClientSecret());
+        params.put(GRANT_TYPE, REFRESH_TOKEN);
+        params.put(REFRESH_TOKEN, refreshToken);
+
+        String tokenString = HttpUtils.postFormRequest(url, sslContext, params);
+
+        logger.info(tokenString);
+        ObjectMapper om = new ObjectMapper();
+        try {
+            AccessToken token = om.readValue(tokenString, AccessToken.class);
+            return token;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+
+
         return null;
     }
 
@@ -269,6 +293,9 @@ public class KeyCloakUserAdapter implements UserAuth {
                 .setExpiresIn(accessTokenResponse.getExpiresIn())
                 .setRefreshExpiresIn(accessTokenResponse.getRefreshExpiresIn())
                 .setTokenType(accessTokenResponse.getTokenType())
+                .setIdToken(accessTokenResponse.getIdToken())
+                .setNotBeforePolicy(accessTokenResponse.getNotBeforePolicy())
+                .setSessionState(accessTokenResponse.getSessionState())
                 .setScope(accessTokenResponse.getScope());
     }
 

@@ -2,13 +2,15 @@ package com.pm.backend.controller.v1;
 
 
 import com.pm.backend.security.*;
-import org.jetbrains.annotations.NotNull;
+import com.pm.backend.security.representations.AccessToken;
+import com.pm.backend.security.representations.KeyCloakUser;
+import com.pm.backend.security.representations.KeyCloakContext;
+import com.pm.backend.security.representations.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,7 +55,7 @@ public class UserManagementController {
                         .setPassword(password);
 
 
-                KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
+                KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new KeyCloakContext(env));
                 AccessToken accessToken = keyCloakUserAdapter.login(user);
 
                 return ResponseEntity.ok(accessToken);
@@ -71,11 +73,28 @@ public class UserManagementController {
         }
     }
 
+    @PostMapping("refreshToken")
+    public ResponseEntity refreshToken(@RequestBody String refreshToken) {
+        logger.info("refresh token request");
+
+        try {
+            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new KeyCloakContext(env));
+            AccessToken accessToken = keyCloakUserAdapter.refresh(refreshToken);
+
+            return ResponseEntity.ok().body(accessToken);
+
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
+
     @PostMapping("/users")
     public ResponseEntity register(@RequestBody KeyCloakUser user) {
         logger.info("trying to register a user");
         try {
-            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
+            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new KeyCloakContext(env));
             KeyCloakUser registeredUser = keyCloakUserAdapter.register(user);
 
             return ResponseEntity.ok().body(registeredUser);
@@ -94,7 +113,7 @@ public class UserManagementController {
         logger.info("Get profile for user {}", userId);
 
         try {
-            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
+            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new KeyCloakContext(env));
             KeyCloakUser user = keyCloakUserAdapter.getUserById(userId);
 
             return ResponseEntity.ok(user);
@@ -116,7 +135,7 @@ public class UserManagementController {
 
         logger.info("logout request for {}", userId);
         try {
-            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new UserContext(env));
+            KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new KeyCloakContext(env));
             keyCloakUserAdapter.logout(userId);
         } catch (UserException e) {
             //somehow the logout failed
