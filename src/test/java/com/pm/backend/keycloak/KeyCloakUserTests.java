@@ -3,6 +3,7 @@ package com.pm.backend.keycloak;
 
 
 import com.pm.backend.security.*;
+import com.pm.backend.security.authz.KeyCloakAuthzAdapter;
 import com.pm.backend.security.representations.AccessToken;
 import com.pm.backend.security.representations.KeyCloakUser;
 import com.pm.backend.security.representations.KeyCloakContext;
@@ -25,14 +26,16 @@ public class KeyCloakUserTests {
     static Logger logger = LoggerFactory.getLogger(KeyCloakUserTests.class);
 
     protected static KeyCloakUserAdapter keyCloakUserAdapter;
+    protected  static KeyCloakAuthzAdapter keyCloakAuthzAdapter;
     protected static KeyCloakContext context;
 
     @BeforeClass
-    public static void setup() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+    public static void setup() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, UserException {
         logger.info("Begin setup");
         context = new KeyCloakContext(getMockContext());
         try {
             keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(context);
+            keyCloakAuthzAdapter = KeyCloakAuthzAdapter.getInstance();
         }
         catch(Exception e) {
             logger.error("Exception in setup" + e);
@@ -58,7 +61,7 @@ public class KeyCloakUserTests {
         }
     }
 
-    @Test()
+    //@Test()
     public void refreshTokenTest(){
         logger.info("refreshTokenTest");
         try {
@@ -125,6 +128,24 @@ public class KeyCloakUserTests {
             e.printStackTrace();
         }
     }
+
+
+    @Test()
+    public void authzTest1(){
+        logger.info("authzTest1");
+        try {
+            //KeyCloakUser user = keyCloakUserAdapter.getUserById("0835b82a-8f53-403d-9c8e-2decde188fcb");
+
+            //logger.info("User is {}", user.toString());
+
+            //token = keyCloakUserAdapter.login("test1", "failed");
+        }catch(Exception e) {
+            logger.error("Exception in authzTest1 " + e);
+            e.printStackTrace();
+        }
+    }
+
+
 
 
 }

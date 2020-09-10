@@ -1,6 +1,7 @@
 package com.pm.backend.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pm.backend.security.authz.KeyCloakAuthzAdapter;
 import com.pm.backend.security.representations.*;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -12,7 +13,6 @@ import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -50,11 +50,11 @@ public class KeyCloakUserAdapter implements UserAuth {
 
 
     //TODO move this out into its own singleton
-    private AuthzClient authzClient;
+    private KeyCloakAuthzAdapter keyCloakAuthzAdapter;
 
     public static synchronized KeyCloakUserAdapter getInstance(KeyCloakContext context) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         if (instance == null) {
-            return new KeyCloakUserAdapter(context.getEnv());
+            instance = new KeyCloakUserAdapter(context.getEnv());
         }
         return instance;
     }
@@ -64,44 +64,19 @@ public class KeyCloakUserAdapter implements UserAuth {
         sslContext = SSLContextBuilder.create().loadTrustMaterial(new TrustAllStrategy()).build();
         userRealm = KeyCloakRealm.userRealm(env);
         adminRealm = KeyCloakRealm.adminRealm(env);
-        authzClient = createAuthzClient(userRealm);
+        keyCloakAuthzAdapter = KeyCloakAuthzAdapter.getInstance(userRealm);
 
 
     }
 
-    private AuthzClient createAuthzClient(KeyCloakRealm realm) {
-        Map<String, Object> secretsMap = new HashMap<>();
-        secretsMap.put("secret", realm.getClientSecret());
 
-
-        //This creates an HttpClient which will trust all certificates
-        CloseableHttpClient keyCloakHttpClient = HttpClients.custom()
-                .setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier())).build();
-
-        Configuration keyCloakConfig = new Configuration(
-                realm.getServerUrl(),
-                realm.getRealmName(),
-                realm.getClientId(),
-                secretsMap, keyCloakHttpClient
-        );
-        return AuthzClient.create(keyCloakConfig);
-    }
 
 
 
 
     @Override
     public AccessToken login(KeyCloakUser user) throws Exception {
-        AuthorizationRequest request = new AuthorizationRequest();
-        AuthorizationResponse authorizationResponse;
-
-
-        try {
-            authorizationResponse = authzClient.authorization(user.getUserName(), user.getPassword()).authorize(request);
-        } catch (Exception e) {
-            throw e;
-        }
-
+        AuthorizationResponse authorizationResponse = keyCloakAuthzAdapter.authorize(user);
         return convertResponseToToken(authorizationResponse);
     }
 

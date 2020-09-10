@@ -19,6 +19,7 @@ public class UserException extends Exception {
         USER_DOESNT_EXIST,
         HTTP_POST_FAIL,
         HTTP_GET_FAIL,
+        AUTHZ_NOT_INITIALIZED,
         UNKNOWN_REASON;
     }
 
