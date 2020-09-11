@@ -3,22 +3,16 @@ package com.pm.backend.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pm.backend.security.authz.KeyCloakAuthzAdapter;
 import com.pm.backend.security.representations.*;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustAllStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.authorization.client.Configuration;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.keycloak.representations.idm.authorization.AuthorizationRequest;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +25,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static com.pm.backend.security.representations.UserException.REASON.USER_CREATION_HTTP_FAILURE;
+import static com.pm.backend.security.representations.KeyCloakException.REASON.USER_CREATION_HTTP_FAILURE;
 import static org.keycloak.OAuth2Constants.*;
 
 /**
@@ -111,10 +105,10 @@ public class KeyCloakUserAdapter implements UserAuth {
     /**
      *
      * @param userId This is the keycloak-provided userId, NOT the username
-     * @throws UserException
+     * @throws KeyCloakException
      */
     @Override
-    public void logout(String userId) throws UserException {
+    public void logout(String userId) throws KeyCloakException {
         Keycloak keycloak = getAdminClient();
 
         UserResource userResource = getUserResource(keycloak, userId);
@@ -133,7 +127,7 @@ public class KeyCloakUserAdapter implements UserAuth {
      * Currently assumes all users will be added to the same userRealm
      */
     @Override
-    public KeyCloakUser register(KeyCloakUser registerUser) throws UserException {
+    public KeyCloakUser register(KeyCloakUser registerUser) throws KeyCloakException {
         //TODO add some validation
 
         KeyCloakUser keyCloakUser = null;
@@ -175,7 +169,7 @@ public class KeyCloakUserAdapter implements UserAuth {
                 else {
                     //bad news, either throw a custom exception
 
-                    throw new UserException(new Exception(), USER_CREATION_HTTP_FAILURE);
+                    throw new KeyCloakException(new Exception(), USER_CREATION_HTTP_FAILURE);
 
                 }
 
@@ -185,7 +179,7 @@ public class KeyCloakUserAdapter implements UserAuth {
         }
         else {
             //user already exists
-            throw new UserException(UserException.REASON.USER_ALREADY_EXISTS);
+            throw new KeyCloakException(KeyCloakException.REASON.USER_ALREADY_EXISTS);
         }
 
         keycloak.close();
@@ -193,19 +187,19 @@ public class KeyCloakUserAdapter implements UserAuth {
         return keyCloakUser;
     }
 
-    public KeyCloakUser getUserById(String id) throws UserException {
+    public KeyCloakUser getUserById(String id) throws KeyCloakException {
         Keycloak keycloak = getAdminClient();
         UserResource userResource = getUserResource(keycloak, id);
         return convertResourceToUser(keycloak, userResource);
     }
 
 
-    public KeyCloakUser getUserByName(String userName) throws UserException {
+    public KeyCloakUser getUserByName(String userName) throws KeyCloakException {
         Keycloak keycloak = getAdminClient();
         List<UserRepresentation> userReps = keycloak.realm(userRealm.getRealmName()).users().search(userName);
 
         if(userReps == null || userReps.isEmpty()) {
-            throw new UserException(UserException.REASON.USER_DOESNT_EXIST);
+            throw new KeyCloakException(KeyCloakException.REASON.USER_DOESNT_EXIST);
         }
 
         KeyCloakUser user = new KeyCloakUser(userReps.get(0));
@@ -227,7 +221,7 @@ public class KeyCloakUserAdapter implements UserAuth {
         return !users.isEmpty();
     }
 
-    private UserResource getUserResource(Keycloak keycloak, String userId) throws UserException{
+    private UserResource getUserResource(Keycloak keycloak, String userId) throws KeyCloakException {
 
 
 
@@ -240,7 +234,7 @@ public class KeyCloakUserAdapter implements UserAuth {
             logger.info("Got here2");
         }
         catch (Exception e) {
-            throw new UserException(e, UserException.REASON.USER_DOESNT_EXIST);
+            throw new KeyCloakException(e, KeyCloakException.REASON.USER_DOESNT_EXIST);
         }
         return userResource;
     }

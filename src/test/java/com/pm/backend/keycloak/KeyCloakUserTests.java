@@ -4,10 +4,7 @@ package com.pm.backend.keycloak;
 
 import com.pm.backend.security.*;
 import com.pm.backend.security.authz.KeyCloakAuthzAdapter;
-import com.pm.backend.security.representations.AccessToken;
-import com.pm.backend.security.representations.KeyCloakUser;
-import com.pm.backend.security.representations.KeyCloakContext;
-import com.pm.backend.security.representations.UserException;
+import com.pm.backend.security.representations.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,7 +27,7 @@ public class KeyCloakUserTests {
     protected static KeyCloakContext context;
 
     @BeforeClass
-    public static void setup() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, UserException {
+    public static void setup() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, KeyCloakException {
         logger.info("Begin setup");
         context = new KeyCloakContext(getMockContext());
         try {
@@ -89,7 +86,7 @@ public class KeyCloakUserTests {
             //keyCloakUserAdapter.logout(user.getId());
 
 
-        }catch(UserException e) {
+        }catch(KeyCloakException e) {
             logger.error("Exception in logout test" + e.toString());
             e.printStackTrace();
         }
@@ -131,16 +128,22 @@ public class KeyCloakUserTests {
 
 
     @Test()
-    public void authzTest1(){
-        logger.info("authzTest1");
+    public void createGroupTest(){
+        logger.info("createGroupTest");
         try {
-            //KeyCloakUser user = keyCloakUserAdapter.getUserById("0835b82a-8f53-403d-9c8e-2decde188fcb");
 
-            //logger.info("User is {}", user.toString());
+            KeyCloakResource group = new KeyCloakGroup()
+                    .setName("bobbabois")
+                    .setOwnerId("0835b82a-8f53-403d-9c8e-2decde188fcb")
+                    .setType("urn:login-app:resources:group");
+            group.addScope("view");
+            group.addUri("/groups/bobbabois");
 
-            //token = keyCloakUserAdapter.login("test1", "failed");
+
+            keyCloakAuthzAdapter.createGroup(group);
+
         }catch(Exception e) {
-            logger.error("Exception in authzTest1 " + e);
+            logger.error("Exception in createGroupTest " + e);
             e.printStackTrace();
         }
     }

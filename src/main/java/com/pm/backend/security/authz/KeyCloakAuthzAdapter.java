@@ -3,9 +3,10 @@ package com.pm.backend.security.authz;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pm.backend.security.HttpUtils;
 import com.pm.backend.security.UserAuthz;
+import com.pm.backend.security.representations.KeyCloakException;
+import com.pm.backend.security.representations.KeyCloakResource;
 import com.pm.backend.security.representations.KeyCloakRealm;
 import com.pm.backend.security.representations.KeyCloakUser;
-import com.pm.backend.security.representations.UserException;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustAllStrategy;
@@ -14,8 +15,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
+import org.keycloak.authorization.client.resource.ProtectedResource;
 import org.keycloak.representations.idm.authorization.AuthorizationRequest;
 import org.keycloak.representations.idm.authorization.AuthorizationResponse;
+import org.keycloak.representations.idm.authorization.ResourceRepresentation;
+import org.keycloak.representations.idm.authorization.ScopeRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +29,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static com.pm.backend.security.representations.UserException.REASON.AUTHZ_NOT_INITIALIZED;
+import static com.pm.backend.security.representations.KeyCloakException.REASON.*;
 
 /**
  * Currently a singleton, to avoid having multiple adapters present.
@@ -40,6 +46,7 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
     private final SSLContext sslContext;
     private AuthzClient authzClient;
     private KeyCloakRealm userRealm;
+    private KeyCloakDiscovery keyCloakDiscovery;
 
     public static synchronized KeyCloakAuthzAdapter getInstance(KeyCloakRealm realm) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         if(instance == null) {
@@ -48,9 +55,9 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         return instance;
 
     }
-    public static synchronized KeyCloakAuthzAdapter getInstance() throws UserException {
+    public static synchronized KeyCloakAuthzAdapter getInstance() throws KeyCloakException {
         if(instance == null) {
-            throw new UserException(AUTHZ_NOT_INITIALIZED);
+            throw new KeyCloakException(AUTHZ_NOT_INITIALIZED);
         }
         return instance;
 
@@ -71,9 +78,11 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
             String responseString = HttpUtils.getRequest(url, sslContext);
             logger.info("Response: {}", responseString);
             ObjectMapper om = new ObjectMapper();
-            Map<String, Object> responseMap = om.readValue(responseString, Map.class);
+            /*Map<String, Object> responseMap = om.readValue(responseString, Map.class);
             responseMap.forEach((k,v) -> logger.info("Key = "
-                    + k + ", Value = " + v));
+                    + k + ", Value = " + v));*/
+            keyCloakDiscovery = om.readValue(responseString, KeyCloakDiscovery.class);
+            logger.info("Discovery success: " + keyCloakDiscovery);
         }catch (Exception e) {
             logger.error("Exception in initializing authz " + e.getMessage());
             e.printStackTrace();
@@ -113,5 +122,44 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    @Override
+    public ResourceRepresentation createGroup(KeyCloakResource keyCloakResource) throws KeyCloakException {
+        ResourceRepresentation newResource = new ResourceRepresentation();
+
+        newResource.setName(keyCloakResource.getName());
+        newResource.setType(keyCloakResource.getType());
+        newResource.setUris(keyCloakResource.getUris());
+        newResource.setOwner(keyCloakResource.getOwnerId());
+        newResource.setOwnerManagedAccess(true);
+
+        Set<ScopeRepresentation> scopeRepresentationSet = keyCloakResource.getScopes().stream().map(ScopeRepresentation::new).collect(Collectors.toSet());
+        newResource.setScopes(scopeRepresentationSet);
+        try {
+            return createResource(newResource);
+        } catch (KeyCloakException e) {
+            if(e.getReason() == RESOURCE_EXISTS) throw new KeyCloakException(GROUP_EXISTS);
+            throw e;
+        }
+
+    }
+
+    private ResourceRepresentation createResource(ResourceRepresentation newResource) throws KeyCloakException{
+
+
+        ProtectedResource resourceClient = authzClient.protection().resource();
+        ResourceRepresentation existingResource = resourceClient.findByName(newResource.getName());
+        if (existingResource != null) {
+            throw new KeyCloakException(RESOURCE_EXISTS);
+        }
+        // create the resource on the server
+        ResourceRepresentation response = resourceClient.create(newResource);
+        String resourceId = response.getId();
+
+        // query the resource using its newly generated id
+        ResourceRepresentation resource = resourceClient.findById(resourceId);
+
+        return resource;
     }
 }

@@ -3,9 +3,9 @@ package com.pm.backend.controller.v1;
 
 import com.pm.backend.security.*;
 import com.pm.backend.security.representations.AccessToken;
+import com.pm.backend.security.representations.KeyCloakException;
 import com.pm.backend.security.representations.KeyCloakUser;
 import com.pm.backend.security.representations.KeyCloakContext;
-import com.pm.backend.security.representations.UserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +117,7 @@ public class UserManagementController {
             KeyCloakUser user = keyCloakUserAdapter.getUserById(userId);
 
             return ResponseEntity.ok(user);
-        }catch (UserException e) {
+        }catch (KeyCloakException e) {
             //the user doesn't exist
             return ResponseEntity.notFound().build();
 
@@ -137,7 +137,7 @@ public class UserManagementController {
         try {
             KeyCloakUserAdapter keyCloakUserAdapter = KeyCloakUserAdapter.getInstance(new KeyCloakContext(env));
             keyCloakUserAdapter.logout(userId);
-        } catch (UserException e) {
+        } catch (KeyCloakException e) {
             //somehow the logout failed
             return ResponseEntity.badRequest().body(e.getReason());
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 package com.pm.backend.security;
 
 
-import com.pm.backend.security.representations.UserException;
+import com.pm.backend.security.representations.KeyCloakException;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.pm.backend.security.representations.UserException.REASON.HTTP_GET_FAIL;
-import static com.pm.backend.security.representations.UserException.REASON.HTTP_POST_FAIL;
+import static com.pm.backend.security.representations.KeyCloakException.REASON.HTTP_GET_FAIL;
+import static com.pm.backend.security.representations.KeyCloakException.REASON.HTTP_POST_FAIL;
 import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
@@ -49,13 +49,13 @@ public class HttpUtils {
             int statusCode = response.getStatusLine().getStatusCode();
             if(statusCode != 200) {
                 logger.error("Error in postForm: {}", response.getStatusLine().getReasonPhrase());
-                throw new UserException(HTTP_POST_FAIL);
+                throw new KeyCloakException(HTTP_POST_FAIL);
             }
 
             httpClient.close();
             return EntityUtils.toString(response.getEntity());
         } catch (Exception e) {
-            throw new UserException(e, HTTP_POST_FAIL);
+            throw new KeyCloakException(e, HTTP_POST_FAIL);
         }
     }
 
@@ -72,12 +72,12 @@ public class HttpUtils {
 
             if(statusCode != 200) {
                 logger.error("Error in postForm: {}", response.getStatusLine().getReasonPhrase());
-                throw new UserException(HTTP_GET_FAIL);
+                throw new KeyCloakException(HTTP_GET_FAIL);
             }
             httpClient.close();
             return EntityUtils.toString(response.getEntity());
         }catch (Exception e) {
-            throw new UserException(e, HTTP_GET_FAIL);
+            throw new KeyCloakException(e, HTTP_GET_FAIL);
         }
     }
 }

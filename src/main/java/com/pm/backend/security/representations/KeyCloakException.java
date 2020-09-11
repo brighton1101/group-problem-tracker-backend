@@ -9,7 +9,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class UserException extends Exception {
+public class KeyCloakException extends Exception {
 
 
 
@@ -20,18 +20,20 @@ public class UserException extends Exception {
         HTTP_POST_FAIL,
         HTTP_GET_FAIL,
         AUTHZ_NOT_INITIALIZED,
+        RESOURCE_EXISTS,
+        GROUP_EXISTS,
         UNKNOWN_REASON;
     }
 
     private REASON reason;
     private Exception baseException;
 
-    public UserException(REASON reason) {
+    public KeyCloakException(REASON reason) {
         super();
         this.reason = reason;
     }
 
-    public UserException(Exception e, REASON reason) {
+    public KeyCloakException(Exception e, REASON reason) {
         super(e);
         this.reason = reason;
         this.baseException = e;
@@ -39,7 +41,7 @@ public class UserException extends Exception {
 
     @Override
     public String toString() {
-        return "UserException{" +
+        return "KeyCloakException{" +
                 "reason=" + reason +
                 ", baseException=" + baseException.getCause() +
                 '}';
