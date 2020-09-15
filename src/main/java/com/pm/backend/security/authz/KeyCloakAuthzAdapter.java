@@ -3,10 +3,7 @@ package com.pm.backend.security.authz;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pm.backend.security.HttpUtils;
 import com.pm.backend.security.UserAuthz;
-import com.pm.backend.security.representations.KeyCloakException;
-import com.pm.backend.security.representations.KeyCloakResource;
-import com.pm.backend.security.representations.KeyCloakRealm;
-import com.pm.backend.security.representations.KeyCloakUser;
+import com.pm.backend.security.representations.*;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustAllStrategy;
@@ -15,11 +12,9 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
+import org.keycloak.authorization.client.representation.TokenIntrospectionResponse;
 import org.keycloak.authorization.client.resource.ProtectedResource;
-import org.keycloak.representations.idm.authorization.AuthorizationRequest;
-import org.keycloak.representations.idm.authorization.AuthorizationResponse;
-import org.keycloak.representations.idm.authorization.ResourceRepresentation;
-import org.keycloak.representations.idm.authorization.ScopeRepresentation;
+import org.keycloak.representations.idm.authorization.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,4 +157,38 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
 
         return resource;
     }
+
+    //helper function, will take rpt and return the parsed permissions
+    public void introspectToken(String rpt) {
+        // introspect the token
+        TokenIntrospectionResponse requestingPartyToken = authzClient.protection().introspectRequestingPartyToken(rpt);
+
+        logger.info("Token status is: " + requestingPartyToken.getActive());
+        logger.info("Permissions granted by the server: ");
+
+        for (Permission granted : requestingPartyToken.getPermissions()) {
+            logger.info("" + granted);
+        }
+
+    }
+
+    public void checkUserAccessToGroup(KeyCloakUser user, String groupName) {
+        AuthorizationRequest request = new AuthorizationRequest();
+        request.addPermission(groupName, "view");
+        AuthorizationResponse response = authzClient.authorization(user.getUserName(), user.getPassword()).authorize(request);
+        String rpt = response.getToken();
+        introspectToken(rpt);
+    }
+
+    public void checkTokenAccessToGroup(String accessToken, String groupName) {
+        AuthorizationRequest request = new AuthorizationRequest();
+        request.addPermission(groupName, "view");
+
+        //TODO if its unauth, theres a 500 erro ,need to catch it
+        AuthorizationResponse response = authzClient.authorization(accessToken).authorize(request);
+        String rpt = response.getToken();
+        introspectToken(rpt);
+    }
+
+
 }

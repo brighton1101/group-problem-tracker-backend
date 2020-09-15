@@ -43,13 +43,18 @@ public class KeyCloakUserTests {
         logger.info("finished setup");
     }
 
-    //@Test()
+    @Test()
     public void loginTest(){
         logger.info("Logintest");
         try {
-            AccessToken token = keyCloakUserAdapter.login(new KeyCloakUser().setUserName("test1").setPassword("test1"));
+            KeyCloakUser user = new KeyCloakUser().setUserName("bob123").setPassword("lahey");
+            //KeyCloakUser user = new KeyCloakUser().setUserName("test1").setPassword("test1");
+            AccessToken token = keyCloakUserAdapter.login(user);
 
             logger.info("AccessToken is {}", token.toString());
+
+            keyCloakAuthzAdapter.checkUserAccessToGroup(user, "bobbabois");
+            //keyCloakAuthzAdapter.checkTokenAccessToGroup(token.getToken(), "bobbabois");
 
             //token = keyCloakUserAdapter.login("test1", "failed");
         }catch(Exception e) {
@@ -127,7 +132,7 @@ public class KeyCloakUserTests {
     }
 
 
-    @Test()
+    //@Test()
     public void createGroupTest(){
         logger.info("createGroupTest");
         try {
