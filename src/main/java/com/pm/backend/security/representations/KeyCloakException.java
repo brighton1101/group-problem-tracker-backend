@@ -22,6 +22,8 @@ public class KeyCloakException extends Exception {
         AUTHZ_NOT_INITIALIZED,
         RESOURCE_EXISTS,
         GROUP_EXISTS,
+        GROUP_CHECK_PERMISSION_FAILURE,
+
         UNKNOWN_REASON;
     }
 

@@ -40,14 +40,16 @@ public class KeyCloakUser {
     }
 
     public KeyCloakUser copy() {
-        return new KeyCloakUser()
+        KeyCloakUser user =  new KeyCloakUser()
                 .setId(this.id)
                 .setUserName(this.userName)
                 .setFirstName(this.firstName)
                 .setLastName(this.lastName)
                 .setEmail(this.email)
-                .setPassword(this.password)
-                .setTimeCreated(new Date(this.timeCreated.getTime()));
+                .setPassword(this.password);
+        if(this.timeCreated != null)
+                user.setTimeCreated(new Date(this.timeCreated.getTime()));
+        return user;
     }
 
     @Override

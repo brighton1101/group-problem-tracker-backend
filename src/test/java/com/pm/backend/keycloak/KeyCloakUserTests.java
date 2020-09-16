@@ -47,14 +47,14 @@ public class KeyCloakUserTests {
     public void loginTest(){
         logger.info("Logintest");
         try {
-            KeyCloakUser user = new KeyCloakUser().setUserName("bob123").setPassword("lahey");
-            //KeyCloakUser user = new KeyCloakUser().setUserName("test1").setPassword("test1");
+            //KeyCloakUser user = new KeyCloakUser().setUserName("bob123").setPassword("lahey");
+            KeyCloakUser user = new KeyCloakUser().setUserName("test1").setPassword("test1");
             AccessToken token = keyCloakUserAdapter.login(user);
 
             logger.info("AccessToken is {}", token.toString());
 
-            keyCloakAuthzAdapter.checkUserAccessToGroup(user, "bobbabois");
-            //keyCloakAuthzAdapter.checkTokenAccessToGroup(token.getToken(), "bobbabois");
+            //keyCloakAuthzAdapter.checkUserAccessToGroup(user, "bobbabois");
+            keyCloakAuthzAdapter.checkTokenAccessToGroup(token.getToken(), "bobbabois");
 
             //token = keyCloakUserAdapter.login("test1", "failed");
         }catch(Exception e) {
@@ -97,15 +97,17 @@ public class KeyCloakUserTests {
         }
     }
 
-    //@Test
+    //@Test()
     public void registerTest(){
-        logger.info("Start register test");
+        logger.info("Start register tst");
 
         KeyCloakUser bob = new KeyCloakUser()
                 .setFirstName("bob")
                 .setLastName("boi")
-                .setPassword("lahey")
-                .setUserName("bob123");
+                //.setPassword("lahey")
+                //.setUserName("bob123");
+                .setPassword("test2")
+                .setUserName("test2");
         try {
             KeyCloakUser user = keyCloakUserAdapter.register(bob);
 

@@ -22,9 +22,7 @@ import javax.net.ssl.SSLContext;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.pm.backend.security.representations.KeyCloakException.REASON.*;
@@ -159,17 +157,24 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
     }
 
     //helper function, will take rpt and return the parsed permissions
-    public void introspectToken(String rpt) {
+    private HashMap<String, Set<String>> introspectToken(String rpt) {
         // introspect the token
         TokenIntrospectionResponse requestingPartyToken = authzClient.protection().introspectRequestingPartyToken(rpt);
 
         logger.info("Token status is: " + requestingPartyToken.getActive());
         logger.info("Permissions granted by the server: ");
 
-        for (Permission granted : requestingPartyToken.getPermissions()) {
-            logger.info("" + granted);
-        }
+        HashMap<String, Set<String>> permissionMap = new HashMap<>();
+        List<Permission> permissions = requestingPartyToken.getPermissions();
+        if(!permissions.isEmpty()) {
+            for (Permission granted : permissions) {
+                logger.info(">" + granted);
+                permissionMap.put(granted.getResourceName(), granted.getScopes());
+            }
+            //return permissions.stream().map((s) -> s.)
 
+        }
+        return permissionMap;
     }
 
     public void checkUserAccessToGroup(KeyCloakUser user, String groupName) {
@@ -180,14 +185,24 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         introspectToken(rpt);
     }
 
-    public void checkTokenAccessToGroup(String accessToken, String groupName) {
+    public void checkTokenAccessToGroup(String accessToken, String groupName) throws KeyCloakException {
         AuthorizationRequest request = new AuthorizationRequest();
         request.addPermission(groupName, "view");
 
         //TODO if its unauth, theres a 500 erro ,need to catch it
-        AuthorizationResponse response = authzClient.authorization(accessToken).authorize(request);
-        String rpt = response.getToken();
-        introspectToken(rpt);
+        try {
+            AuthorizationResponse response = authzClient.authorization(accessToken).authorize(request);
+            String rpt = response.getToken();
+            HashMap<String, Set<String>> permissions = introspectToken(rpt);
+            if(permissions.containsKey(groupName) && permissions.get(groupName).contains("view")) {
+                logger.info("Yes theres access");
+            }
+
+        }catch (Exception e) {
+            logger.info(e.toString());
+            //e.printStackTrace();
+            throw new KeyCloakException(e, GROUP_CHECK_PERMISSION_FAILURE);
+        }
     }
 
 

@@ -134,7 +134,7 @@ public class KeyCloakUserAdapter implements UserAuth {
 
         Keycloak keycloak = getAdminClient();
 
-
+        //TODO need to add role "User" to user
         RealmResource userRealmResource = keycloak.realm(userRealm.getRealmName());
         //logger.info("userRealmresource clients: {}", userRealmResource.clients());
         UsersResource usersResource = userRealmResource.users();
@@ -149,6 +149,9 @@ public class KeyCloakUserAdapter implements UserAuth {
             credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
             credentialRepresentation.setValue(registerUser.getPassword());
             userRepresentation.setCredentials(Arrays.asList(credentialRepresentation));
+            List<String> roles =  new ArrayList<String>();
+            roles.add("User");
+            userRepresentation.setRealmRoles(roles);
 
 
             try(Response response = usersResource.create(userRepresentation)) {
