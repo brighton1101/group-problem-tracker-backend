@@ -152,6 +152,7 @@ public class KeyCloakUserAdapter implements UserAuth {
             List<String> roles =  new ArrayList<String>();
             roles.add("User");
             userRepresentation.setRealmRoles(roles);
+            userRepresentation.setEnabled(true);
 
 
             try(Response response = usersResource.create(userRepresentation)) {

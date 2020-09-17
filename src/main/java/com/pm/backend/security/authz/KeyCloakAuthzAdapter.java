@@ -14,6 +14,7 @@ import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.authorization.client.representation.TokenIntrospectionResponse;
 import org.keycloak.authorization.client.resource.ProtectedResource;
+import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.idm.authorization.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,10 +199,17 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
                 logger.info("Yes theres access");
             }
 
-        }catch (Exception e) {
-            logger.info(e.toString());
-            //e.printStackTrace();
-            throw new KeyCloakException(e, GROUP_CHECK_PERMISSION_FAILURE);
+        }catch (RuntimeException e) {
+
+            logger.info("Exception: " + e.getCause());
+            if(e.getCause() instanceof HttpResponseException) {
+                HttpResponseException exception = (HttpResponseException) e.getCause();
+                if(exception.getStatusCode() == 400) {
+                    throw new KeyCloakException(exception, GROUP_CHECK_PERMISSION_FAILURE);
+                }
+            }
+
+
         }
     }
 
