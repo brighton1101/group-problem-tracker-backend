@@ -143,7 +143,7 @@ public class KeyCloakUserTests {
                     .setName("bobbabois")
                     .setOwnerId("0835b82a-8f53-403d-9c8e-2decde188fcb")
                     .setType("urn:login-app:resources:group");
-            group.addScope("view");
+            group.addScope("group:view");
             group.addUri("/groups/bobbabois");
 
 
