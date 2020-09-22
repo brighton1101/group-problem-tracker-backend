@@ -43,12 +43,12 @@ public class KeyCloakUserTests {
         logger.info("finished setup");
     }
 
-    @Test()
+    //@Test()
     public void loginTest(){
         logger.info("Logintest");
         try {
-            KeyCloakUser user = new KeyCloakUser().setUserName("test3").setPassword("test3");
-            //KeyCloakUser user = new KeyCloakUser().setUserName("test1").setPassword("test1");
+            //KeyCloakUser user = new KeyCloakUser().setUserName("test2").setPassword("test2");
+            KeyCloakUser user = new KeyCloakUser().setUserName("test1").setPassword("test1");
             AccessToken token = keyCloakUserAdapter.login(user);
 
             logger.info("AccessToken is {}", token.toString());
@@ -97,17 +97,17 @@ public class KeyCloakUserTests {
         }
     }
 
-    //@Test()
+    @Test()
     public void registerTest(){
         logger.info("Start register tst");
 
         KeyCloakUser bob = new KeyCloakUser()
-                .setFirstName("bob")
-                .setLastName("boi")
+                .setFirstName("am")
+                .setLastName("tam")
                 //.setPassword("lahey")
                 //.setUserName("bob123");
-                .setPassword("test3")
-                .setUserName("test3");
+                .setPassword("test4")
+                .setUserName("test4");
         try {
             KeyCloakUser user = keyCloakUserAdapter.register(bob);
 

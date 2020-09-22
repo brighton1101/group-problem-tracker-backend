@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 
+import javax.management.relation.Role;
 import javax.net.ssl.SSLContext;
 import javax.ws.rs.core.Response;
 import java.security.KeyManagementException;
@@ -134,11 +135,11 @@ public class KeyCloakUserAdapter implements UserAuth {
 
         Keycloak keycloak = getAdminClient();
 
-        //TODO need to add role "User" to user
         RealmResource userRealmResource = keycloak.realm(userRealm.getRealmName());
         //logger.info("userRealmresource clients: {}", userRealmResource.clients());
         UsersResource usersResource = userRealmResource.users();
         //logger.info("users resource {}", usersResource.list());
+
 
         if(!userExists(registerUser, usersResource)) {
             UserRepresentation userRepresentation = new UserRepresentation();
@@ -149,9 +150,6 @@ public class KeyCloakUserAdapter implements UserAuth {
             credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
             credentialRepresentation.setValue(registerUser.getPassword());
             userRepresentation.setCredentials(Arrays.asList(credentialRepresentation));
-            List<String> roles =  new ArrayList<String>();
-            roles.add("User");
-            userRepresentation.setRealmRoles(roles);
             userRepresentation.setEnabled(true);
 
 
@@ -161,6 +159,17 @@ public class KeyCloakUserAdapter implements UserAuth {
                 if(response.getStatus()==201) {
                     String[] pathArr = response.getLocation().getPath().split("/");
                     String userId = pathArr[pathArr.length-1];
+
+
+                    RoleRepresentation userRole = userRealmResource.roles().get("user").toRepresentation();
+                    List<RoleRepresentation> roles =  new ArrayList<>();
+                    roles.add(userRole);
+                    //kc.realm("Test").users().get(userId).roles().realmLevel()
+                     //       .add(asList(savedRoleRepresentation));
+                    userRealmResource.users().get(userId).roles().realmLevel()
+                                .add(roles);
+
+
                     keyCloakUser = registerUser.copy();
                     keyCloakUser.setId(userId);
 
