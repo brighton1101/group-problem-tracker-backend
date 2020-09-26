@@ -13,6 +13,7 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.authorization.client.representation.TokenIntrospectionResponse;
+import org.keycloak.authorization.client.resource.PermissionResource;
 import org.keycloak.authorization.client.resource.ProtectedResource;
 import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.idm.authorization.*;
@@ -211,6 +212,21 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
 
 
         }
+    }
+
+    private PermissionResource getGroupPermissionResource(String groupId) {
+        PermissionResource permissionResource = authzClient.protection().permission();
+        return permissionResource;
+
+    }
+
+    private void groupViewPermission(String groupId) {
+        PermissionRequest permissionRequest = new PermissionRequest(groupId, "view");
+
+        PermissionResource permissionResource = getGroupPermissionResource(groupId);
+        PermissionResponse response = permissionResource.create(permissionRequest);
+
+
     }
 
 
