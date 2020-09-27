@@ -129,6 +129,7 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         newResource.setOwner(keyCloakResource.getOwnerId());
         newResource.setOwnerManagedAccess(true);
 
+
         Set<ScopeRepresentation> scopeRepresentationSet = keyCloakResource.getScopes().stream().map(ScopeRepresentation::new).collect(Collectors.toSet());
         newResource.setScopes(scopeRepresentationSet);
         try {
@@ -225,8 +226,17 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
 
         PermissionResource permissionResource = getGroupPermissionResource(groupId);
         PermissionResponse response = permissionResource.create(permissionRequest);
-
-
+    }
+    //TODO now do the same but add a policy/permission
+    public void queryResourcePermissions(String resourceId, String accessToken) {
+        String url = keyCloakDiscovery.policyEndpoint + "?resource=" + resourceId;
+        try {
+            String response = HttpUtils.getRequest(url, sslContext, accessToken);
+            logger.info("response {}", response);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 

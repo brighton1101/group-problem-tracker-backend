@@ -43,7 +43,7 @@ public class KeyCloakUserTests {
         logger.info("finished setup");
     }
 
-    //@Test()
+    @Test()
     public void loginTest(){
         logger.info("Logintest");
         try {
@@ -54,7 +54,9 @@ public class KeyCloakUserTests {
             logger.info("AccessToken is {}", token.toString());
 
             //keyCloakAuthzAdapter.checkUserAccessToGroup(user, "bobbabois");
-            keyCloakAuthzAdapter.checkTokenAccessToGroup(token.getToken(), "bobbabois");
+            keyCloakAuthzAdapter.queryResourcePermissions("group1", token.getToken());
+
+            //keyCloakAuthzAdapter.checkTokenAccessToGroup(token.getToken(), "group1");
 
             //token = keyCloakUserAdapter.login("test1", "failed");
         }catch(Exception e) {
@@ -97,7 +99,7 @@ public class KeyCloakUserTests {
         }
     }
 
-    @Test()
+    //@Test()
     public void registerTest(){
         logger.info("Start register tst");
 
@@ -140,11 +142,11 @@ public class KeyCloakUserTests {
         try {
 
             KeyCloakResource group = new KeyCloakGroup()
-                    .setName("bobbabois")
+                    .setName("group1")
                     .setOwnerId("0835b82a-8f53-403d-9c8e-2decde188fcb")
                     .setType("urn:login-app:resources:group");
             group.addScope("group:view");
-            group.addUri("/groups/bobbabois");
+            group.addUri("/groups/group1");
 
 
             keyCloakAuthzAdapter.createGroup(group);

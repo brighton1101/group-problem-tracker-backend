@@ -24,8 +24,7 @@ import java.util.Map;
 
 import static com.pm.backend.security.representations.KeyCloakException.REASON.HTTP_GET_FAIL;
 import static com.pm.backend.security.representations.KeyCloakException.REASON.HTTP_POST_FAIL;
-import static org.springframework.http.HttpHeaders.ACCEPT;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.HttpHeaders.*;
 
 public class HttpUtils {
 
@@ -66,12 +65,39 @@ public class HttpUtils {
         HttpGet getRequest = new HttpGet(url);
         getRequest.addHeader(ACCEPT, "application/json");
 
+        logger.info("Sending get to {}", url);
+
         try {
             HttpResponse response = httpClient.execute(getRequest);
             int statusCode = response.getStatusLine().getStatusCode();
 
             if(statusCode != 200) {
-                logger.error("Error in postForm: {}", response.getStatusLine().getReasonPhrase());
+                logger.error("Error in getRequest: {}", response.getStatusLine().getReasonPhrase());
+                throw new KeyCloakException(HTTP_GET_FAIL);
+            }
+            httpClient.close();
+            return EntityUtils.toString(response.getEntity());
+        }catch (Exception e) {
+            throw new KeyCloakException(e, HTTP_GET_FAIL);
+        }
+    }
+
+    public static String getRequest(String url, SSLContext sslContext, String accessToken) throws Exception {
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setSSLSocketFactory(new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier())).build();
+
+        HttpGet getRequest = new HttpGet(url);
+        getRequest.addHeader(ACCEPT, "application/json");
+        getRequest.addHeader(AUTHORIZATION, "Bearer " + accessToken);
+
+        logger.info("Sending get to {}", url);
+
+        try {
+            HttpResponse response = httpClient.execute(getRequest);
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if(statusCode != 200) {
+                logger.error("Error in getRequest: {}", response.getStatusLine().getReasonPhrase());
                 throw new KeyCloakException(HTTP_GET_FAIL);
             }
             httpClient.close();
