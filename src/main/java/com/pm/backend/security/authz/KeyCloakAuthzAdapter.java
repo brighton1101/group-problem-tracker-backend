@@ -14,6 +14,7 @@ import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.authorization.client.representation.TokenIntrospectionResponse;
 import org.keycloak.authorization.client.resource.PermissionResource;
+import org.keycloak.authorization.client.resource.PolicyResource;
 import org.keycloak.authorization.client.resource.ProtectedResource;
 import org.keycloak.authorization.client.util.HttpResponseException;
 import org.keycloak.representations.idm.authorization.*;
@@ -221,11 +222,21 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
 
     }
 
-    private void groupViewPermission(String groupId) {
-        PermissionRequest permissionRequest = new PermissionRequest(groupId, "view");
+    private String addGroupViewPermission(String groupId, String accessToken) {
+        PermissionRequest permissionRequest = new PermissionRequest(groupId, "group:view");
 
-        PermissionResource permissionResource = getGroupPermissionResource(groupId);
+
+        PermissionResource permissionResource = authzClient.protection(accessToken).permission();
+
+
         PermissionResponse response = permissionResource.create(permissionRequest);
+        logger.info(""+response);
+        List<PermissionTicketRepresentation> res = permissionResource.findByResource("group1");
+        logger.info(""+res);
+
+        return response.getTicket();
+
+
     }
     //TODO now do the same but add a policy/permission
     public void queryResourcePermissions(String resourceId, String accessToken) {
@@ -237,6 +248,35 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void grantUserAccessToGroup(String groupId, String user, String accessToken) {
+        UmaPermissionRepresentation permission = new UmaPermissionRepresentation();
+        permission.addScope("group:view");
+        permission.setDescription("Allow group view access for "+user);
+        permission.addUser(user);
+        permission.setName(groupId + ":" + user + ":" + "view");
+        permission.setDecisionStrategy(DecisionStrategy.AFFIRMATIVE);
+        permission.setResources(Collections.singleton(groupId));
+
+
+
+        addGroupViewPermission(groupId, accessToken);
+        addResourcePolicy(groupId, permission, accessToken);
+    }
+
+    private void addResourcePolicy(String resourceId, UmaPermissionRepresentation permission, String accessToken) {
+        PolicyResource policyResource = authzClient.protection(accessToken).policy(resourceId);
+        //PolicyResource policyResource = authzClient.protection().policy(resourceId);
+        logger.info(""+policyResource);
+
+        //policyResource.findById("1");
+        //PolicyResource policyResource = authzClient.protection(accessToken).;
+
+
+
+
+        policyResource.create(permission);
     }
 
 
