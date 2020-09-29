@@ -142,11 +142,11 @@ public class KeyCloakUserTests {
         try {
 
             KeyCloakResource group = new KeyCloakGroup()
-                    .setName("group2")
+                    .setName("group3")
                     .setOwnerId("0835b82a-8f53-403d-9c8e-2decde188fcb")
                     .setType("urn:login-app:resources:group");
             group.addScope("group:view");
-            group.addUri("/groups/group2");
+            group.addUri("/groups/group3");
 
 
             keyCloakAuthzAdapter.createGroup(group);
@@ -164,8 +164,12 @@ public class KeyCloakUserTests {
             KeyCloakUser user = new KeyCloakUser().setUserName("test1").setPassword("test1");
             AccessToken token = keyCloakUserAdapter.login(user);
 
-            //keyCloakAuthzAdapter.queryResourcePermissions("group1", token.getToken());
-            keyCloakAuthzAdapter.grantUserAccessToGroup("group1", "test1", token.getToken());
+            //keyCloakAuthzAdapter.grantUserAccessToGroup("group1", "test2", token.getToken());
+
+
+            KeyCloakUser user2 = new KeyCloakUser().setUserName("test2").setPassword("test2");
+
+            keyCloakAuthzAdapter.checkUserAccessToGroup(user2, "group1");
 
         }catch(Exception e) {
             logger.error("Exception in userPermissionTest " + e);

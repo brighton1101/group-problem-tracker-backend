@@ -154,6 +154,8 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         ResourceRepresentation response = resourceClient.create(newResource);
         String resourceId = response.getId();
 
+        logger.info("ResourceId: {}", resourceId);
+
         // query the resource using its newly generated id
         ResourceRepresentation resource = resourceClient.findById(resourceId);
 
@@ -181,9 +183,12 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         return permissionMap;
     }
 
-    public void checkUserAccessToGroup(KeyCloakUser user, String groupName) {
+    public void checkUserAccessToGroup(KeyCloakUser user, String groupId) {
         AuthorizationRequest request = new AuthorizationRequest();
-        request.addPermission(groupName, "view");
+
+
+
+        request.addPermission(groupId, "view");
         AuthorizationResponse response = authzClient.authorization(user.getUserName(), user.getPassword()).authorize(request);
         String rpt = response.getToken();
         introspectToken(rpt);
@@ -250,6 +255,15 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         }
     }
 
+    //Because of UMA, we need the ownerId in order to query for the resource given the name.
+    private ResourceRepresentation getResourceByName(String resourceName, String ownerId) {
+        ProtectedResource resourceClient = authzClient.protection().resource();
+        ResourceRepresentation existingResource = resourceClient.findByName(resourceName, ownerId);
+
+        return existingResource;
+    }
+
+
     public void grantUserAccessToGroup(String groupId, String user, String accessToken) {
         UmaPermissionRepresentation permission = new UmaPermissionRepresentation();
         permission.addScope("group:view");
@@ -257,12 +271,14 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         permission.addUser(user);
         permission.setName(groupId + ":" + user + ":" + "view");
         permission.setDecisionStrategy(DecisionStrategy.AFFIRMATIVE);
-        permission.setResources(Collections.singleton(groupId));
+        //permission.setResources(Collections.singleton(groupId));
+
+        ResourceRepresentation resource = getResourceByName(groupId, "0835b82a-8f53-403d-9c8e-2decde188fcb");
 
 
 
-        addGroupViewPermission(groupId, accessToken);
-        addResourcePolicy(groupId, permission, accessToken);
+        //addGroupViewPermission(groupId, accessToken);
+        addResourcePolicy(resource.getId(), permission, accessToken);
     }
 
     private void addResourcePolicy(String resourceId, UmaPermissionRepresentation permission, String accessToken) {
