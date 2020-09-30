@@ -264,16 +264,19 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
     }
 
 
-    public void grantUserAccessToGroup(String groupId, String user, String accessToken) {
+    public void grantUserAccessToGroup(String groupId, String user, String accessToken, String ownerId) {
         UmaPermissionRepresentation permission = new UmaPermissionRepresentation();
-        permission.addScope("group:view");
-        permission.setDescription("Allow group view access for "+user);
-        permission.addUser(user);
+
         permission.setName(groupId + ":" + user + ":" + "view");
+        permission.setDescription("Allow group view access for "+user);
+        permission.addScope("group:view");
         permission.setDecisionStrategy(DecisionStrategy.AFFIRMATIVE);
+        permission.addClient("login-app");
+        permission.addUser(user);
+        //permission.setCondition("$evaluation.grant()");
         //permission.setResources(Collections.singleton(groupId));
 
-        ResourceRepresentation resource = getResourceByName(groupId, "0835b82a-8f53-403d-9c8e-2decde188fcb");
+        ResourceRepresentation resource = getResourceByName(groupId, ownerId);
 
 
 
@@ -288,11 +291,10 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
 
         //policyResource.findById("1");
         //PolicyResource policyResource = authzClient.protection(accessToken).;
+        UmaPermissionRepresentation response = policyResource.create(permission);
 
-
-
-
-        policyResource.create(permission);
+        logger.info("users:"+response.getUsers());
+        logger.info("clients:"+response.getClients());
     }
 
 

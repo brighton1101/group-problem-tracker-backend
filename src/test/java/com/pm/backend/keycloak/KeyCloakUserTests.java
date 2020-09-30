@@ -164,10 +164,11 @@ public class KeyCloakUserTests {
             KeyCloakUser user = new KeyCloakUser().setUserName("test1").setPassword("test1");
             AccessToken token = keyCloakUserAdapter.login(user);
 
-            //keyCloakAuthzAdapter.grantUserAccessToGroup("group1", "test2", token.getToken());
+
+            keyCloakAuthzAdapter.grantUserAccessToGroup("group1", "test3", token.getToken(), "0835b82a-8f53-403d-9c8e-2decde188fcb");
 
 
-            KeyCloakUser user2 = new KeyCloakUser().setUserName("test2").setPassword("test2");
+            KeyCloakUser user2 = new KeyCloakUser().setUserName("test3").setPassword("test3");
 
             keyCloakAuthzAdapter.checkUserAccessToGroup(user2, "group1");
 
