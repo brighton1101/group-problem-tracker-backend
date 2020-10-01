@@ -10,6 +10,7 @@ import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.keycloak.authorization.client.AuthorizationDeniedException;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.authorization.client.representation.TokenIntrospectionResponse;
@@ -127,18 +128,19 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         newResource.setName(keyCloakResource.getName());
         newResource.setType(keyCloakResource.getType());
         newResource.setUris(keyCloakResource.getUris());
-        newResource.setOwner(keyCloakResource.getOwnerId());
-        newResource.setOwnerManagedAccess(true);
+        //newResource.setOwner(keyCloakResource.getOwnerId());
+        //newResource.setOwnerManagedAccess(true);
 
 
         Set<ScopeRepresentation> scopeRepresentationSet = keyCloakResource.getScopes().stream().map(ScopeRepresentation::new).collect(Collectors.toSet());
         newResource.setScopes(scopeRepresentationSet);
         try {
-            return createResource(newResource);
+            newResource = createResource(newResource);
         } catch (KeyCloakException e) {
             if(e.getReason() == RESOURCE_EXISTS) throw new KeyCloakException(GROUP_EXISTS);
             throw e;
         }
+        return newResource;
 
     }
 
@@ -183,15 +185,23 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         return permissionMap;
     }
 
-    public void checkUserAccessToGroup(KeyCloakUser user, String groupId) {
+    public void checkUserAccessToGroup(KeyCloakUser user, String groupName) {
         AuthorizationRequest request = new AuthorizationRequest();
 
+        ResourceRepresentation resource = getResourceByName(groupName);
 
+        request.addPermission(resource.getId(), "group:view");
+        try {
+            AuthorizationResponse response = authzClient.authorization(user.getUserName(), user.getPassword()).authorize(request);
+            String rpt = response.getToken();
+            introspectToken(rpt);
+        }
+        catch (AuthorizationDeniedException e) {
 
-        request.addPermission(groupId, "view");
-        AuthorizationResponse response = authzClient.authorization(user.getUserName(), user.getPassword()).authorize(request);
-        String rpt = response.getToken();
-        introspectToken(rpt);
+                //throw new KeyCloakException(e, GROUP_CHECK_PERMISSION_FAILURE);
+            logger.info("no access");
+
+        }
     }
 
     public void checkTokenAccessToGroup(String accessToken, String groupName) throws KeyCloakException {
@@ -227,17 +237,17 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
 
     }
 
-    private String addGroupViewPermission(String groupId, String accessToken) {
+    private String addGroupViewPermission(String groupId) {
         PermissionRequest permissionRequest = new PermissionRequest(groupId, "group:view");
 
 
-        PermissionResource permissionResource = authzClient.protection(accessToken).permission();
+        PermissionResource permissionResource = authzClient.protection().permission();
 
 
         PermissionResponse response = permissionResource.create(permissionRequest);
-        logger.info(""+response);
+        logger.info("response: "+response);
         List<PermissionTicketRepresentation> res = permissionResource.findByResource("group1");
-        logger.info(""+res);
+        logger.info("resource: "+res);
 
         return response.getTicket();
 
@@ -255,12 +265,38 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         }
     }
 
-    //Because of UMA, we need the ownerId in order to query for the resource given the name.
     private ResourceRepresentation getResourceByName(String resourceName, String ownerId) {
         ProtectedResource resourceClient = authzClient.protection().resource();
         ResourceRepresentation existingResource = resourceClient.findByName(resourceName, ownerId);
 
         return existingResource;
+    }
+
+    private ResourceRepresentation getResourceByName(String resourceName) {
+        ProtectedResource resourceClient = authzClient.protection().resource();
+        ResourceRepresentation existingResource = resourceClient.findByName(resourceName);
+
+        return existingResource;
+    }
+
+    public void grantUserAccessToGroup(String groupName, String user) {
+        UmaPermissionRepresentation permission = new UmaPermissionRepresentation();
+
+        ResourceRepresentation resource = getResourceByName(groupName);
+
+        permission.setName(groupName + ":" + user + ":" + "view");
+        permission.setDescription("Allow group view access for "+user);
+        permission.addScope("group:view");
+        permission.setDecisionStrategy(DecisionStrategy.AFFIRMATIVE);
+        permission.addClient("login-app");
+        permission.addUser(user);
+        //permission.setCondition("$evaluation.grant()");
+        //permission.setResources(Collections.singleton(groupId));
+
+
+
+        addGroupViewPermission(resource.getId());
+        //addResourcePolicy(resource.getId(), permission);
     }
 
 
@@ -284,10 +320,24 @@ public class KeyCloakAuthzAdapter implements UserAuthz {
         addResourcePolicy(resource.getId(), permission, accessToken);
     }
 
+    private void addResourcePolicy(String resourceId, UmaPermissionRepresentation permission) {
+        PolicyResource policyResource = authzClient.protection().policy(resourceId);
+        //PolicyResource policyResource = authzClient.protection().policy(resourceId);
+        logger.info(""+policyResource);
+
+        //policyResource.findById("1");
+        //PolicyResource policyResource = authzClient.protection(accessToken).;
+        UmaPermissionRepresentation response = policyResource.create(permission);
+
+        logger.info("users:"+response.getUsers());
+        logger.info("clients:"+response.getClients());
+    }
+
     private void addResourcePolicy(String resourceId, UmaPermissionRepresentation permission, String accessToken) {
         PolicyResource policyResource = authzClient.protection(accessToken).policy(resourceId);
         //PolicyResource policyResource = authzClient.protection().policy(resourceId);
         logger.info(""+policyResource);
+
 
         //policyResource.findById("1");
         //PolicyResource policyResource = authzClient.protection(accessToken).;
