@@ -14,6 +14,7 @@ docker run --rm  \
    -e DB_USER=keycloak \
    -e DB_PASSWD=password \
    -e KEYCLOAK_LOGLEVEL=DEBUG \
+   -e JAVA_OPTS="-Dkeycloak.profile.feature.scripts=enabled -Dkeycloak.profile.feature.upload_scripts=enabled" \
    -v $DIR:/tmp \
    -it quay.io/keycloak/keycloak \
    -Djboss.http.port=8180
