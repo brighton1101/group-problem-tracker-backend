@@ -6,3 +6,4 @@ target/
 backend.iml
 docker/keycloak/*.log
 docker/keycloak/hsperfdata_jboss/
+docker/keycloak/kc-gzip-cache/**
