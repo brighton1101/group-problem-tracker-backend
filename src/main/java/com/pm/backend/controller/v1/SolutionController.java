@@ -6,6 +6,8 @@ import com.pm.backend.model.v1.solution.SolutionModel;
 import com.pm.backend.repository.SolutionRepository;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ import static com.pm.backend.controller.v1.SchemaVersion.v;
 @RestController
 @RequestMapping("/v1/solutions")
 public class SolutionController {
+
+    Logger logger = LoggerFactory.getLogger(UserController.class);
 
 
     @Autowired
@@ -39,6 +43,8 @@ public class SolutionController {
 
     @GetMapping("/{id}")
     public ResponseEntity getSolution(@PathVariable String id) {
+
+        logger.info("get solution {}", id);
 
         Optional<SolutionModel> solution = solutionRepository.findById(id);
         if (solution.isPresent()) {
