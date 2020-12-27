@@ -17,6 +17,7 @@ import org.keycloak.representations.idm.authorization.AuthorizationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import javax.management.relation.Role;
 import javax.net.ssl.SSLContext;
@@ -33,6 +34,7 @@ import static org.keycloak.OAuth2Constants.*;
  * Currently a singleton, to avoid having multiple adapters present.
  * Only need one adapter across the entire application to authenticate users
  */
+@Component
 public class KeyCloakUserAdapter implements UserAuth {
 
     private Logger logger = LoggerFactory.getLogger(KeyCloakUserAdapter.class);
@@ -70,13 +72,20 @@ public class KeyCloakUserAdapter implements UserAuth {
 
 
     @Override
-    public AccessToken login(KeyCloakUser user) throws Exception {
-        AuthorizationResponse authorizationResponse = keyCloakAuthzAdapter.authorize(user);
-        return convertResponseToToken(authorizationResponse);
+    public Optional<AccessToken> login(KeyCloakUser user) {
+        AccessToken at = null;
+        try {
+            AuthorizationResponse authorizationResponse = keyCloakAuthzAdapter.authorize(user);
+            at = convertResponseToToken(authorizationResponse);
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+        return Optional.of(at);
+
     }
 
     @Override
-    public AccessToken refresh(String refreshToken) throws Exception {
+    public Optional<AccessToken> refresh(String refreshToken) {
         String url = userRealm.getRealmUrl() + "/protocol/openid-connect/token";
         Map<String, String> params = new HashMap<>();
 
@@ -84,24 +93,21 @@ public class KeyCloakUserAdapter implements UserAuth {
         params.put(CLIENT_SECRET, userRealm.getClientSecret());
         params.put(GRANT_TYPE, REFRESH_TOKEN);
         params.put(REFRESH_TOKEN, refreshToken);
-
-        String tokenString = HttpUtils.postFormRequest(url, sslContext, params);
-
-        logger.info(tokenString);
-        ObjectMapper om = new ObjectMapper();
+        String tokenString;
         try {
-            AccessToken token = om.readValue(tokenString, AccessToken.class);
-            return token;
+            tokenString = HttpUtils.postFormRequest(url, sslContext, params);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+        ObjectMapper om = new ObjectMapper();
+        AccessToken token = null;
+        try {
+            token = om.readValue(tokenString, AccessToken.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-
-
-        return null;
+        return Optional.of(token);
     }
-
-
-
 
     /**
      *
@@ -109,15 +115,17 @@ public class KeyCloakUserAdapter implements UserAuth {
      * @throws KeyCloakException
      */
     @Override
-    public void logout(String userId) throws KeyCloakException {
-        Keycloak keycloak = getAdminClient();
-
-        UserResource userResource = getUserResource(keycloak, userId);
-
-        logger.info("userResource: {}", userResource);
-
-        userResource.logout();
-        keycloak.close();
+    public boolean logout(String userId) {
+        try {
+            Keycloak keycloak = getAdminClient();
+            UserResource userResource = getUserResource(keycloak, userId);
+            userResource.logout();
+            keycloak.close();
+            return true;
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+        return false;
     }
 
     /**
@@ -128,105 +136,84 @@ public class KeyCloakUserAdapter implements UserAuth {
      * Currently assumes all users will be added to the same userRealm
      */
     @Override
-    public KeyCloakUser register(KeyCloakUser registerUser) throws KeyCloakException {
+    public Optional<KeyCloakUser> register(KeyCloakUser registerUser) {
         //TODO add some validation
 
         KeyCloakUser keyCloakUser = null;
-
         Keycloak keycloak = getAdminClient();
-
         RealmResource userRealmResource = keycloak.realm(userRealm.getRealmName());
-        //logger.info("userRealmresource clients: {}", userRealmResource.clients());
         UsersResource usersResource = userRealmResource.users();
-        //logger.info("users resource {}", usersResource.list());
-
-
-        if(!userExists(registerUser, usersResource)) {
-            UserRepresentation userRepresentation = new UserRepresentation();
-            userRepresentation.setUsername(registerUser.getUserName());
-            userRepresentation.setEmail(registerUser.getEmail());
-
-            CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-            credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
-            credentialRepresentation.setValue(registerUser.getPassword());
-            userRepresentation.setCredentials(Arrays.asList(credentialRepresentation));
-            userRepresentation.setEnabled(true);
-
-
-            try(Response response = usersResource.create(userRepresentation)) {
-
-                logger.info("response: {}", response);
-                if(response.getStatus()==201) {
-                    String[] pathArr = response.getLocation().getPath().split("/");
-                    String userId = pathArr[pathArr.length-1];
-
-
-                    RoleRepresentation userRole = userRealmResource.roles().get("user").toRepresentation();
-                    List<RoleRepresentation> roles =  new ArrayList<>();
-                    roles.add(userRole);
-                    //kc.realm("Test").users().get(userId).roles().realmLevel()
-                     //       .add(asList(savedRoleRepresentation));
-                    userRealmResource.users().get(userId).roles().realmLevel()
-                                .add(roles);
-
-
-                    keyCloakUser = registerUser.copy();
-                    keyCloakUser.setId(userId);
-
-                    UserResource userResource = usersResource.get(userId);
-                    keyCloakUser.setTimeCreated(new Date(userResource.toRepresentation().getCreatedTimestamp()));
-                    
-                    //TODO the user roles should also be added to the returned keycloakuser
-
+        if (userExists(registerUser, usersResource)) {
+            return Optional.empty();
+        }
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setUsername(registerUser.getUserName());
+        userRepresentation.setEmail(registerUser.getEmail());
+        CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
+        credentialRepresentation.setType(CredentialRepresentation.PASSWORD);
+        credentialRepresentation.setValue(registerUser.getPassword());
+        userRepresentation.setCredentials(Arrays.asList(credentialRepresentation));
+        userRepresentation.setEnabled(true);
+        try(Response response = usersResource.create(userRepresentation)) {
+            if(response.getStatus()==201) {
+                String[] pathArr = response.getLocation().getPath().split("/");
+                String userId = pathArr[pathArr.length-1];
+                RoleRepresentation userRole = userRealmResource.roles().get("user").toRepresentation();
+                List<RoleRepresentation> roles =  new ArrayList<>();
+                roles.add(userRole);
+                userRealmResource.users().get(userId).roles().realmLevel()
+                        .add(roles);
+                keyCloakUser = registerUser.copy();
+                keyCloakUser.setId(userId);
+                UserResource userResource = usersResource.get(userId);
+                keyCloakUser.setTimeCreated(new Date(userResource.toRepresentation().getCreatedTimestamp()));
                 }
-                else {
-                    //bad news, either throw a custom exception
-
-                    throw new KeyCloakException(new Exception(), USER_CREATION_HTTP_FAILURE);
-
-                }
-
+            else {
+                logger.info(response.toString());
+                return Optional.empty();
             }
-
-
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Optional.empty();
         }
-        else {
-            //user already exists
-            throw new KeyCloakException(KeyCloakException.REASON.USER_ALREADY_EXISTS);
-        }
-
         keycloak.close();
-
-        return keyCloakUser;
+        return Optional.of(keyCloakUser);
     }
 
-    public KeyCloakUser getUserById(String id) throws KeyCloakException {
-        Keycloak keycloak = getAdminClient();
-        UserResource userResource = getUserResource(keycloak, id);
-        return convertResourceToUser(keycloak, userResource);
+    public Optional<KeyCloakUser> getUserById(String id) {
+        KeyCloakUser res = null;
+        try {
+            Keycloak keycloak = getAdminClient();
+            UserResource userResource = getUserResource(keycloak, id);
+            res = convertResourceToUser(keycloak, userResource);
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+        }
+        return Optional.of(res);
     }
 
 
-    public KeyCloakUser getUserByName(String userName) throws KeyCloakException {
+    public Optional<KeyCloakUser> getUserByName(String userName) {
         Keycloak keycloak = getAdminClient();
         List<UserRepresentation> userReps = keycloak.realm(userRealm.getRealmName()).users().search(userName);
-
         if(userReps == null || userReps.isEmpty()) {
-            throw new KeyCloakException(KeyCloakException.REASON.USER_DOESNT_EXIST);
+            return Optional.empty();
         }
-
         KeyCloakUser user = new KeyCloakUser(userReps.get(0));
-
-        List<RoleRepresentation> roleRepresentations = getUserResource(keycloak, user.getId()).roles().realmLevel().listEffective();
-        if(!roleRepresentations.isEmpty()) {
-            List<String> roles = new ArrayList<>();
-            for(RoleRepresentation roleRep : roleRepresentations) {
-                roles.add(roleRep.getName());
+        try {
+            List<RoleRepresentation> roleRepresentations = getUserResource(keycloak, user.getId()).roles().realmLevel().listEffective();
+            if(!roleRepresentations.isEmpty()) {
+                List<String> roles = new ArrayList<>();
+                for(RoleRepresentation roleRep : roleRepresentations) {
+                    roles.add(roleRep.getName());
+                }
+                user.setRoles(roles);
             }
-            user.setRoles(roles);
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+            return Optional.empty();
         }
-
-        return user;
+        return Optional.of(user);
     }
 
     private boolean userExists(KeyCloakUser user, UsersResource usersResource) {
