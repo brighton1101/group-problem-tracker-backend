@@ -27,24 +27,24 @@ public class KeyCloakRealm {
 
     public static KeyCloakRealm userRealm(Environment env) {
         return new KeyCloakRealm(
-                env.getProperty("keycloak.server"),
-                env.getProperty("keycloak.user-realm.url"),
-                env.getProperty("keycloak.user-realm.name"),
-                env.getProperty("keycloak.user-realm.client.id"),
-                env.getProperty("keycloak.user-realm.client.secret"),
+                env.getProperty("kc.server"),
+                env.getProperty("kc.user-realm.url"),
+                env.getProperty("kc.user-realm.name"),
+                env.getProperty("kc.user-realm.client.id"),
+                env.getProperty("kc.user-realm.client.secret"),
                 null,
                 null);
     }
 
     public static KeyCloakRealm adminRealm(Environment env) {
         return new KeyCloakRealm(
-                env.getProperty("keycloak.server"),
-                env.getProperty("keycloak.admin-realm.url"),
-                env.getProperty("keycloak.admin-realm.name"),
-                env.getProperty("keycloak.admin-realm.client.id"),
-                env.getProperty("keycloak.admin-realm.client.secret"),
-                env.getProperty("keycloak.admin-realm.username"),
-                env.getProperty("keycloak.admin-realm.password")
+                env.getProperty("kc.server"),
+                env.getProperty("kc.admin-realm.url"),
+                env.getProperty("kc.admin-realm.name"),
+                env.getProperty("kc.admin-realm.client.id"),
+                env.getProperty("kc.admin-realm.client.secret"),
+                env.getProperty("kc.admin-realm.username"),
+                env.getProperty("kc.admin-realm.password")
             );
     }
 
